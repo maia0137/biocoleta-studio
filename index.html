@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BioColeta Studio V7.2</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312160d' stroke='%237fae4f' stroke-width='4'/%3E%3Cpath d='M46 16c-14 0-26 10-28 26 6-4 14-6 22-4-8 4-14 10-18 16 14-2 26-12 24-38z' fill='%237fae4f'/%3E%3Ccircle cx='46' cy='46' r='11' fill='%23212917' stroke='%23a3d16a' stroke-width='3'/%3E%3Cpath d='M46 39v14M39 46h14' stroke='%23a3d16a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#12160d;
+    --bg-panel:#1a2013;
+    --bg-panel-2:#212917;
+    --bg-input:#161c10;
+    --border:#333f26;
+    --border-soft:#2a3320;
+    --text:#e7ecdd;
+    --text-muted:#93a17f;
+    --accent:#7fae4f;
+    --accent-strong:#a3d16a;
+    --accent-soft:rgba(127,174,79,0.15);
+    --warn:#d99a4c;
+    --warn-soft:rgba(217,154,76,0.15);
+    --danger:#c1584a;
+    --danger-soft:rgba(193,88,74,0.15);
+    --note:#56a8d8;
+    --note-soft:rgba(86,168,216,0.15);
+    --radius:8px;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{padding-bottom:40px;}
+  h1,h2,h3,h4{font-family:var(--sans);color:var(--text);margin:0 0 8px 0;}
+  p{color:var(--text-muted);line-height:1.5;}
+  code{font-family:var(--mono);background:var(--bg-input);padding:1px 5px;border-radius:4px;color:var(--accent-strong);}
+  hr{border:none;border-top:1px solid var(--border);margin:14px 0;}
+  label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-muted);margin:10px 0 4px;text-transform:none;}
+  input[type="text"], input[type="number"], textarea, select{
+    width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);
+    padding:9px 10px;border-radius:6px;font-family:var(--sans);font-size:0.92rem;
+  }
+  textarea{font-family:var(--mono);font-size:0.82rem;resize:vertical;}
+  input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent);}
+  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:6px;padding:9px 14px;font-size:0.86rem;font-weight:600;transition:filter .15s ease;}
+  button:hover{filter:brightness(1.15);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-save{background:var(--accent);color:#0e1408;}
+  .btn-add{background:var(--bg-panel-2);color:var(--accent-strong);border:1px solid var(--accent);}
+  .btn-note{background:var(--note-soft);color:#8fd3ff;border:1px solid var(--note);}
+  .btn-danger{background:var(--danger);color:#1a0d0a;}
+  .btn-danger-sm{background:transparent;color:var(--danger);border:1px solid var(--danger);padding:2px 8px;font-size:0.75rem;}
+  .btn-secundario{background:var(--bg-panel-2);color:var(--text-muted);border:1px solid var(--border);}
+  .btn-move{background:var(--bg-panel-2);color:var(--text);border:1px solid var(--border);padding:6px 10px;font-size:0.8rem;}
+  .hidden{display:none !important;}
+
+  /* ===== TOPBAR ===== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    padding:14px 22px;background:var(--bg-panel);border-bottom:2px solid var(--border);
+    position:sticky;top:0;z-index:20;
+  }
+  .topbar h1{font-size:1.15rem;display:flex;align-items:center;gap:8px;margin:0;}
+  .topbar h1 span{color:var(--accent-strong);}
+  .topbar h1 em{font-style:normal;font-size:0.7rem;color:var(--text-muted);background:var(--bg-input);padding:2px 8px;border-radius:20px;border:1px solid var(--border);}
+  .upgrade-badge{
+    font-size:0.72rem;background:var(--accent-soft);color:var(--accent-strong);
+    border:1px solid var(--accent);padding:3px 9px;border-radius:20px;font-weight:700;
+  }
+  .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .topbar-actions button{background:var(--bg-panel-2);color:var(--text);border:1px solid var(--border);}
+  .topbar-actions button.active{border-color:var(--accent);color:var(--accent-strong);}
+  #btnExportar{background:var(--accent);color:#0e1408;}
+  #btnExportar:disabled{background:var(--bg-panel-2);color:var(--text-muted);}
+
+  /* ===== INGESTAO ===== */
+  .ingest{max-width:760px;margin:40px auto;padding:26px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);}
+  .ingest textarea{height:180px;margin-top:10px;}
+  .ingest-actions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;}
+  .ingest-actions input[type="file"]{color:var(--text-muted);font-size:0.85rem;}
+  .ingest-actions #btnImportar{background:var(--accent);color:#0e1408;padding:10px 20px;}
+  .upgrade-features-list{
+    margin-top:16px;padding:12px 16px;background:var(--bg-panel-2);border:1px solid var(--border);
+    border-radius:6px;font-size:0.82rem;color:var(--text-muted);
+  }
+  .upgrade-features-list strong{color:var(--accent-strong);}
+  .upgrade-features-list ul{margin:6px 0 0 0;padding-left:18px;}
+  .upgrade-features-list li{margin-bottom:4px;}
+
+  /* ===== LAYOUT STUDIO ===== */
+  .studio-main{display:grid;grid-template-columns:1.05fr 1.15fr 1fr;gap:14px;padding:16px;align-items:start;}
+  @media (max-width:1050px){ .studio-main{grid-template-columns:1fr;} }
+  .col-tree,.col-inspector,.col-preview{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px;min-height:200px;
+  }
+  .col-tree{max-height:80vh;overflow-y:auto;}
+  .col-inspector{max-height:80vh;overflow-y:auto;}
+  .col-tree h3,.col-inspector h3,.col-preview h3{font-size:0.9rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-muted);}
+  .tree-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .tree-toolbar button{width:100%;background:var(--bg-panel-2);color:var(--accent-strong);border:1px dashed var(--accent);padding:8px 10px;font-size:0.8rem;}
+  .tree-toolbar button.btn-toolbar-note{color:#8fd3ff;border-color:var(--note);}
+  .tree-empty{color:var(--text-muted);font-size:0.85rem;font-style:italic;}
+
+  /* ===== TREE NODES ===== */
+  .tnode-children{margin-left:14px;padding-left:10px;border-left:1px dashed var(--border-soft);}
+  details.tnode > summary{list-style:none;}
+  details.tnode > summary::-webkit-details-marker{display:none;}
+  .tnode-summary{
+    display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;
+    font-size:0.86rem;user-select:none;
+  }
+  .tnode-summary:hover{background:var(--bg-panel-2);}
+  .tnode-summary.selected{background:var(--accent-soft);color:var(--accent-strong);font-weight:700;}
+  .tnode-summary:before{content:"▸";font-size:0.7rem;color:var(--text-muted);transition:transform .15s;}
+  details[open] > .tnode-summary:before{transform:rotate(90deg);}
+  .tnode-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tnode-count{font-size:0.7rem;color:var(--text-muted);background:var(--bg-input);padding:1px 6px;border-radius:10px;}
+  .tnode-leaf{
+    display:flex;align-items:center;gap:6px;padding:5px 8px;margin:2px 0;border-radius:6px;cursor:pointer;
+    font-size:0.83rem;color:var(--text-muted);
+  }
+  .tnode-leaf:hover{background:var(--bg-panel-2);}
+  .tnode-leaf.selected{background:var(--accent-soft);color:var(--accent-strong);font-weight:700;}
+  .tnode-note.tnode-leaf{color:#8fd3ff;}
+  .tnode-note.tnode-leaf.selected{background:var(--note-soft);color:#b3e2ff;border:1px solid rgba(86,168,216,0.4);}
+  .tnode-empty{font-size:0.75rem;color:var(--text-muted);font-style:italic;padding:4px 8px;}
+
+  /* ===== INSPECTOR ===== */
+  .inspector-empty-msg{color:var(--text-muted);font-style:italic;font-size:0.88rem;}
+  .insp-header-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .insp-tag{
+    display:inline-block;font-size:0.72rem;font-weight:700;letter-spacing:0.02em;color:var(--accent-strong);
+    background:var(--accent-soft);border:1px solid var(--accent);padding:3px 9px;border-radius:20px;
+  }
+  .insp-tag.tag-note{color:#8fd3ff;background:var(--note-soft);border-color:var(--note);}
+  .insp-move-group{display:flex;gap:4px;}
+  .insp-check{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text);margin-top:10px;cursor:pointer;}
+  .insp-check input{width:auto;}
+  .insp-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .insp-hint{font-size:0.82rem;color:var(--text-muted);margin:6px 0;}
+  .insp-raw{height:180px;}
+
+  /* ===== PREVIEW ===== */
+  .preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .preview-header button{background:var(--bg-panel-2);color:var(--accent-strong);border:1px solid var(--border);font-size:0.78rem;padding:6px 10px;}
+  .preview-frame{width:100%;height:72vh;border:1px solid var(--border);border-radius:6px;background:#fff;}
+
+  /* ===== DEV / DICIONARIO PANELS ===== */
+  .dev-panel{max-width:1400px;margin:0 auto 20px;padding:16px 22px;background:var(--bg-panel);border-top:2px solid var(--border);}
+  .dev-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:1000px){ .dev-panel-grid{grid-template-columns:1fr;} }
+  .dev-log-list{list-style:none;padding:0;margin:0;max-height:160px;overflow-y:auto;font-size:0.8rem;}
+  .dev-log-list li{padding:4px 0;border-bottom:1px solid var(--border-soft);color:var(--text-muted);}
+  .dev-raw-box{width:100%;height:220px;}
+  .dev-full-box{width:100%;height:260px;}
+
+  .dic-layout{display:grid;grid-template-columns:240px 1fr;gap:16px;}
+  @media (max-width:800px){ .dic-layout{grid-template-columns:1fr;} }
+  .dic-list-col{max-height:65vh;overflow-y:auto;border-right:1px solid var(--border-soft);padding-right:10px;}
+  .dic-item{padding:7px 10px;border-radius:6px;font-size:0.83rem;cursor:pointer;color:var(--text-muted);margin-bottom:2px;}
+  .dic-item:hover{background:var(--bg-panel-2);}
+  .dic-item.selected{background:var(--accent-soft);color:var(--accent-strong);font-weight:700;}
+  .dic-card{border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;background:var(--bg-panel-2);}
+  .dic-card-header{display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;color:var(--text);font-weight:700;margin-bottom:6px;}
+
+  /* Barra de Ferramentas Markdown no Editor do Dicionário */
+  .md-toolbar{
+    display:flex;flex-wrap:wrap;gap:4px;margin:6px 0;padding:6px;
+    background:var(--bg-input);border:1px solid var(--border);border-radius:6px;
+  }
+  .md-toolbar button{
+    background:var(--bg-panel-2);color:var(--text);border:1px solid var(--border-soft);
+    padding:4px 8px;font-size:0.75rem;border-radius:4px;font-weight:600;
+  }
+  .md-toolbar button:hover{border-color:var(--accent);color:var(--accent-strong);}
+
+  /* ===== MODAL ===== */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;
+    z-index:100;padding:20px;
+  }
+  .modal-box{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px;max-width:500px;width:100%;max-height:88vh;overflow-y:auto;
+  }
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+
+  /* ===== TOAST ===== */
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--bg-panel-2);color:var(--text);border:1px solid var(--accent);padding:10px 18px;border-radius:8px;
+    font-size:0.85rem;opacity:0;pointer-events:none;transition:all .25s ease;z-index:200;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <h1>🌿 BioColeta <span>Studio</span> <em>V7.2</em></h1>
+    <div class="topbar-actions">
+      <span id="badgeUpgrade" class="upgrade-badge hidden" title="Injetor V12.2 ativo: Caixas de Notas, Zoom nas Imagens, Markdown com Tabelas travadas, Links de GPS no relatório e Favicon">✨ Upgrade V12.2 Ativo</span>
+      <button id="btnDicionario" disabled>📖 Dicionário</button>
+      <button id="btnDevMode" disabled>🛠️ Modo Dev</button>
+      <button id="btnExportar" disabled>⬇️ Exportar HTML</button>
+    </div>
+  </header>
+
+  <section id="painelIngestao" class="ingest">
+    <h2>1. Ingestão de Código</h2>
+    <p>Cole abaixo o código-fonte completo do seu app (ex: <code>BioColeta-Maia-Studio-Export.html</code>) ou carregue o arquivo diretamente.</p>
+    <textarea id="inputHTML" placeholder="Cole aqui o código-fonte completo..."></textarea>
+    <div class="ingest-actions">
+      <input type="file" id="fileInput" accept=".html,.htm">
+      <button id="btnImportar">📥 Importar Código</button>
+    </div>
+    <div class="upgrade-features-list">
+      <strong>🚀 Injetor Automático de Recursos V12.2 (aplicado automaticamente ao importar e exportar):</strong>
+      <ul>
+        <li>📝 <strong>Caixas de Notas em qualquer nível:</strong> adicione na Raiz, em Seções (inclusive seções exclusivas de notas) ou em Subseções (Fieldsets), com inclusão dinâmica no relatório <code>.TXT</code> e <code>.MD</code>.</li>
+        <li>⬆️⬇️ <strong>Reordenação livre:</strong> mova qualquer Seção, Fieldset, Item ou Caixa de Nota para cima ou para baixo.</li>
+        <li>🔍 <strong>Lupa Botânica (Zoom Mobile &amp; PC):</strong> toque/clique nas imagens do Guia para ampliar com pinça (2 dedos), duplo toque, roda do mouse ou botões <code>+</code> / <code>-</code> / <code>1:1</code>.</li>
+        <li>📊 <strong>Markdown Expandido + Trava de Toque em Tabelas:</strong> suporte a tabelas, títulos, citações (<code>&gt;</code>), listas numeradas e destaque (<code>==texto==</code>), impedindo que rolar a tabela para o lado mude de card.</li>
+        <li>📍 <strong>Links de GPS nos Relatórios:</strong> geração automática e clicável dos links do <strong>Google Maps</strong>, <strong>OpenStreetMap</strong> e <strong>Street View</strong> após obter captura de GPS.</li>
+        <li>🌿 <strong>Favicons Exclusivos Offline:</strong> ícones vetoriais embutidos tanto no Studio quanto no App exportado.</li>
+      </ul>
+    </div>
+  </section>
+
+  <main id="studioMain" class="studio-main hidden">
+    <aside class="col-tree">
+      <h3>🌳 Explorador em Árvore</h3>
+      <div class="tree-toolbar">
+        <button onclick="adicionarSecaoDialog()">➕ Nova Seção (Nível 1)</button>
+        <button class="btn-toolbar-note" onclick="abrirDialogAdicionarNota(0)">📝 Nova Nota (Raiz)</button>
+      </div>
+      <div id="treeRoot" class="tree-root"></div>
+    </aside>
+
+    <section class="col-inspector">
+      <h3>🔍 Inspetor / Ações Contextuais</h3>
+      <div id="inspetorConteudo" class="inspector-empty">
+        <p class="inspector-empty-msg">Selecione um nó na árvore ao lado para editar, mover, adicionar ou excluir.</p>
+      </div>
+    </section>
+
+    <section class="col-preview">
+      <div class="preview-header">
+        <h3>👁️ Live Preview</h3>
+        <button onclick="atualizarPreview()">🔄 Atualizar</button>
+      </div>
+      <iframe id="previewFrame" class="preview-frame" title="Live Preview"></iframe>
+    </section>
+  </main>
+
+  <section id="painelDicionario" class="dev-panel hidden">
+    <h3>📖 Gestor de Dicionário JS (Guias de Estudo / CONTEUDO_ESTUDOS)</h3>
+    <p>Edite os conteúdos dos guias (📖 Guia e ℹ️). Use a barra de ferramentas em cada card para inserir tabelas, títulos, citações, listas e destaques.</p>
+    <div class="dic-layout">
+      <div class="dic-list-col">
+        <button class="btn-add" style="width:100%;margin-bottom:10px;" onclick="adicionarChaveDicionario()">➕ Nova Chave</button>
+        <div id="dicLista"></div>
+      </div>
+      <div id="dicEditor"><p class="inspector-empty-msg">Selecione uma chave à esquerda, ou crie uma nova.</p></div>
+    </div>
+  </section>
+
+  <section id="painelDevMode" class="dev-panel hidden">
+    <h3>🛠️ Modo Desenvolvedor</h3>
+    <p><strong>Aviso:</strong> o "Limpador de Lógica" (scrubber) e o "Injetor V12.2" atualizam automaticamente o script de <code>gerarRelatorio()</code>, o motor de Markdown e o Zoom — revise abaixo se desejar.</p>
+    <div class="dev-panel-grid">
+      <div>
+        <h4>📋 Log de Ações / 🧹 Scrubber / 🔁 Renomeações</h4>
+        <div id="devLog"></div>
+      </div>
+      <div>
+        <h4>📄 Script Atual (gerarRelatorio + Dicionário + Upgrade V12.2)</h4>
+        <textarea id="devRawScript" class="dev-raw-box" readonly></textarea>
+      </div>
+    </div>
+    <hr>
+    <h4>🧬 Editor Bruto Avançado (documento completo)</h4>
+    <p>Sincronize para ver o HTML completo atual. Edite livremente e recarregue para que o Studio reprocesse a árvore a partir do texto editado.</p>
+    <textarea id="devRawFull" class="dev-full-box"></textarea>
+    <div class="insp-actions">
+      <button class="btn-secundario" onclick="sincronizarRawFull()">🔄 Sincronizar do Documento Atual</button>
+      <button class="btn-danger" onclick="recarregarDoEditorBruto()">🔁 Recarregar do Editor Bruto (substitui a árvore)</button>
+    </div>
+  </section>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal-box" id="modalBox"></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+/* ==========================================================================
+   ESTADO GLOBAL
+   ========================================================================== */
+let importedDoc = null;
+let scriptEl = null;
+let pristineScriptText = '';
+let sidCounter = 1;
+const nodeMap = new Map();
+const expandedSids = new Set();
+let selectedSid = null;
+const deletedFieldNames = new Set();
+const renamedFieldNames = new Map();
+let scrubberLog = [];
+let conteudoEstudos = {};
+let dicionarioChaveSelecionada = null;
+let dicCardsBuffer = [];
+let dicCardsBufferChaveAtual = null;
+const logEntries = [];
+
+/* ==========================================================================
+   AUTOSALVAMENTO LOCAL (proteção contra perda de trabalho)
+   ========================================================================== */
+const AUTOSAVE_KEY = 'biocoleta_studio_autosave_v72';
+const AUTOSAVE_INGEST_KEY = 'biocoleta_studio_autosave_ingest_v72';
+const AUTOSAVE_INTERVAL_MS = 20000;
+
+/* ==========================================================================
+   CONSTANTES DO INJETOR AUTOMÁTICO V12.2 (APP ALVO)
+   ========================================================================== */
+const APP_FAVICON_DATA_URI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b5e20'/%3E%3Crect x='14' y='12' width='36' height='44' rx='5' fill='%23f4f7f6' stroke='%2381c784' stroke-width='2'/%3E%3Crect x='23' y='8' width='18' height='8' rx='3' fill='%23ff9800'/%3E%3Cpath d='M40 24c-10 0-18 7-19 18 4-3 10-4 15-3-5 3-10 7-12 11 10-1 18-8 16-26z' fill='%232e7d32'/%3E%3C/svg%3E";
+
+const ESTILOS_UPGRADE_V12_2 = `
+/* === [BIOCOLETA UPGRADE V12.2: NOTAS, MARKDOWN, TABELAS E ZOOM] === */
+.note-box {
+    grid-column: 1 / -1;
+    width: 100%;
+    background-color: #f3f8fc;
+    border: 1px dashed #64b5f6;
+    border-left: 4px solid #1976d2;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0 12px 0;
+    box-sizing: border-box;
+}
+.note-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #0d47a1;
+    margin-bottom: 6px;
+}
+.note-textarea {
+    width: 100%;
+    min-height: 72px;
+    background-color: #ffffff !important;
+    border: 1px solid #bbdefb !important;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.95rem;
+    color: #2e2e2e;
+    resize: vertical;
+    margin-bottom: 0 !important;
+    box-sizing: border-box;
+}
+.note-textarea:focus {
+    border-color: #1976d2 !important;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+}
+
+/* Imagens Clicáveis no Guia com Indicador de Lupa */
+.zoomable-img-wrap {
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    cursor: zoom-in;
+}
+.zoomable-img-wrap img {
+    display: block;
+    width: 100%;
+    max-height: 68vh;
+    object-fit: contain;
+    margin-bottom: 0 !important;
+    cursor: zoom-in;
+}
+.zoom-hint-pill {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(27, 94, 32, 0.88);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 16px;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* Markdown Expandido e Tabelas com Isolamento de Toque (Touch Lock) */
+.card-text h2, .card-text h3, .card-text h4 {
+    color: var(--primary-color, #1b5e20);
+    margin: 12px 0 6px 0;
+    line-height: 1.3;
+}
+.card-text h2 { font-size: 1.15rem; border-bottom: 2px solid #c8e6c9; padding-bottom: 4px; }
+.card-text h3 { font-size: 1.04rem; }
+.card-text h4 { font-size: 0.96rem; color: #2e7d32; }
+.card-text hr.md-hr {
+    border: none;
+    border-top: 2px dashed #c8e6c9;
+    margin: 14px 0;
+}
+.card-text blockquote.md-callout {
+    margin: 10px 0;
+    padding: 10px 12px;
+    background-color: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    border-radius: 0 6px 6px 0;
+    color: #1b5e20;
+    font-size: 0.94rem;
+}
+.card-text mark.md-mark {
+    background-color: #fff59d;
+    color: #212121;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.card-text code.md-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background-color: #eeeeee;
+    color: #c62828;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.88em;
+}
+.card-text ol { padding-left: 22px; margin: 8px 0; }
+.card-text ol li { margin-bottom: 4px; }
+
+.md-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+    margin: 10px 0 14px 0;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.md-table-hint {
+    font-size: 0.72rem;
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 4px 10px;
+    border-bottom: 1px solid #c8e6c9;
+    font-weight: 600;
+}
+table.md-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    min-width: 340px;
+}
+table.md-table th, table.md-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #f0f0f0;
+    text-align: left;
+    vertical-align: top;
+}
+table.md-table th {
+    background-color: #1b5e20;
+    color: #ffffff;
+    font-weight: 700;
+    white-space: nowrap;
+}
+table.md-table tr:nth-child(even) td {
+    background-color: #f9fbf9;
+}
+
+/* Lightbox de Zoom Interativo (Mobile Pinch + Desktop Wheel/Pan) */
+#bioZoomOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.94);
+    z-index: 5000;
+    display: none;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+#bioZoomOverlay.open { display: flex; }
+.bio-zoom-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(20, 30, 20, 0.9);
+    color: #fff;
+    z-index: 5010;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.bio-zoom-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #c8e6c9;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bio-zoom-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.bio-zoom-btn {
+    background: #2e7d32;
+    color: #fff;
+    border: 1px solid #81c784;
+    border-radius: 6px;
+    padding: 6px 11px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.bio-zoom-btn.close-btn {
+    background: #c62828;
+    border-color: #ef9a9a;
+}
+.bio-zoom-stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+}
+.bio-zoom-stage.dragging { cursor: grabbing; }
+#bioZoomImg {
+    max-width: 95%;
+    max-height: 90%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform 0.05s linear;
+    will-change: transform;
+    pointer-events: none;
+}
+.bio-zoom-footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #bdbdbd;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.7);
+}
+`;
+
+/* ==========================================================================
+   HELPERS GERAIS DO STUDIO
+   ========================================================================== */
+function escaparHTML(s){
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+function atributoEscape(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function showToastStudio(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t.__timeout);
+  t.__timeout = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+function alerta(msg){ showToastStudio(msg); }
+
+function registrarLog(msg){
+  const hora = new Date().toLocaleTimeString('pt-BR');
+  logEntries.push(`[${hora}] ${msg}`);
+  atualizarPainelDevMode();
+}
+
+function marcarDocSujo(){ atualizarPreview(); autosalvar(); }
+
+function slugifyId(texto, prefixo='nota'){
+  const base = String(texto || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 32);
+  let candidato = (prefixo ? prefixo + '_' : '') + (base || 'campo');
+  let cont = 2;
+  while (importedDoc && importedDoc.getElementById(candidato)){
+    candidato = `${prefixo}_${base || 'campo'}_${cont++}`;
+  }
+  return candidato;
+}
+
+/* ==========================================================================
+   MODAL GENÉRICO DO STUDIO
+   ========================================================================== */
+function abrirModal(html){
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+function fecharModal(){
+  document.getElementById('modalOverlay').classList.add('hidden');
+  document.getElementById('modalBox').innerHTML = '';
+}
+document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') fecharModal(); });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') fecharModal(); });
+
+/* ==========================================================================
+   FUNÇÕES DE AUTOSALVAMENTO / RESTAURAÇÃO
+   ========================================================================== */
+function autosalvar(){
+  if (!importedDoc) return;
+  try{
+    const dados = { html: serializarDocumentoAtual(), timestamp: Date.now() };
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(dados));
+  } catch(e){ console.warn('Falha ao autosalvar:', e); }
+}
+function limparAutosave(){
+  try{ localStorage.removeItem(AUTOSAVE_KEY); } catch(e){}
+}
+function limparRascunhoIngestao(){
+  try{ localStorage.removeItem(AUTOSAVE_INGEST_KEY); } catch(e){}
+}
+function restaurarRascunhoIngestao(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_INGEST_KEY);
+    if (raw){
+      const campo = document.getElementById('inputHTML');
+      if (campo) campo.value = raw;
+    }
+  } catch(e){}
+}
+function verificarAutosaveNaAbertura(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw){ restaurarRascunhoIngestao(); return; }
+    const dados = JSON.parse(raw);
+    if (!dados || !dados.html){ restaurarRascunhoIngestao(); return; }
+    const dataFormatada = new Date(dados.timestamp).toLocaleString('pt-BR');
+    abrirModal(`
+      <h3>💾 Trabalho Salvo Encontrado</h3>
+      <p>Encontramos um trabalho salvo automaticamente em <strong>${escaparHTML(dataFormatada)}</strong> que ainda não foi exportado.</p>
+      <p>Deseja restaurar esse trabalho de onde parou, ou começar do zero?</p>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="descartarAutosave()">🗑️ Começar do Zero</button>
+        <button class="btn-save" onclick="restaurarAutosave()">♻️ Restaurar Trabalho</button>
+      </div>
+    `);
+  } catch(e){
+    console.warn('Falha ao verificar autosalvamento:', e);
+    restaurarRascunhoIngestao();
+  }
+}
+function restaurarAutosave(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    const dados = JSON.parse(raw);
+    fecharModal();
+    importarTexto(dados.html);
+    alerta('Trabalho restaurado a partir do salvamento automático.');
+  } catch(e){
+    fecharModal();
+    alerta('Não foi possível restaurar o salvamento automático.');
+  }
+}
+function descartarAutosave(){
+  limparAutosave();
+  fecharModal();
+  restaurarRascunhoIngestao();
+}
+
+/* ==========================================================================
+   INGESTÃO DE CÓDIGO + PREPARAÇÃO DO DOCUMENTO
+   ========================================================================== */
+document.getElementById('btnImportar').addEventListener('click', ()=>importarTexto(document.getElementById('inputHTML').value));
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ document.getElementById('inputHTML').value = reader.result; importarTexto(reader.result); };
+  reader.readAsText(file, 'UTF-8');
+});
+let ingestAutosaveTimeout = null;
+document.getElementById('inputHTML').addEventListener('input', (e)=>{
+  clearTimeout(ingestAutosaveTimeout);
+  ingestAutosaveTimeout = setTimeout(()=>{
+    try{ localStorage.setItem(AUTOSAVE_INGEST_KEY, e.target.value); } catch(err){}
+  }, 600);
+});
+
+function importarTexto(texto){
+  if (!texto || texto.trim().length < 20){ alerta('Cole ou carregue um HTML válido antes de importar.'); return; }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(texto, 'text/html');
+  const scripts = Array.from(doc.querySelectorAll('script')).filter(s=>!s.src);
+  const alvoScript = scripts.find(s=>s.textContent.includes('gerarRelatorio')) || scripts[scripts.length-1];
+  if (!alvoScript){ alerta('Não foi possível localizar o script principal (gerarRelatorio) no arquivo importado.'); return; }
+
+  importedDoc = doc;
+  scriptEl = alvoScript;
+
+  // Remove eventual bloco de runtime V12.2 antigo para manter pristineScriptText limpo
+  pristineScriptText = removerBlocoRuntimeUpgrade(alvoScript.textContent);
+
+  sidCounter = 1; nodeMap.clear(); expandedSids.clear(); selectedSid = null;
+  deletedFieldNames.clear(); renamedFieldNames.clear(); scrubberLog = [];
+  dicionarioChaveSelecionada = null; dicCardsBufferChaveAtual = null;
+
+  const bloco = extrairBlocoDicionario(pristineScriptText);
+  conteudoEstudos = {};
+  if (bloco){
+    try{
+      const corpo = bloco.textoOriginal.replace(/^const\s+CONTEUDO_ESTUDOS\s*=\s*/, '').replace(/;\s*$/, '');
+      conteudoEstudos = new Function('return (' + corpo + ')')();
+    } catch(err){
+      registrarLog('Aviso: não foi possível interpretar CONTEUDO_ESTUDOS automaticamente. O Gestor de Dicionário iniciará vazio.');
+      conteudoEstudos = {};
+    }
+  }
+
+  // Aplica a estrutura de DOM e CSS do Upgrade V12.2 (Favicon, CSS Notas/Zoom/Tabelas, Lightbox DOM)
+  aplicarUpgradeDOMeCSS(importedDoc);
+
+  document.getElementById('painelIngestao').classList.add('hidden');
+  document.getElementById('studioMain').classList.remove('hidden');
+  document.getElementById('badgeUpgrade').classList.remove('hidden');
+  document.getElementById('btnExportar').disabled = false;
+  document.getElementById('btnDicionario').disabled = false;
+  document.getElementById('btnDevMode').disabled = false;
+
+  registrarLog('Código importado e atualizado com o pacote V12.2 (Notas, Zoom, Markdown/Tabelas, Links GPS e Favicon).');
+  recomputarScript();
+  renderTree(); renderInspector(); renderDicionario(); atualizarPreview();
+  limparRascunhoIngestao();
+  autosalvar();
+}
+
+/* ==========================================================================
+   CLASSIFICAÇÃO E LEITURA DE NÓS (INCLUINDO CAIXA DE NOTA 'note')
+   ========================================================================== */
+function getSid(el){
+  if (el.__sid) return el.__sid;
+  const sid = sidCounter++;
+  el.__sid = sid;
+  nodeMap.set(sid, el);
+  return sid;
+}
+
+function getNodeType(el){
+  if (!el || !el.tagName) return 'other';
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'details' && el.classList.contains('section')) return 'section';
+  if (tag === 'fieldset') return 'fieldset';
+  if (el.classList.contains('note-box') || el.getAttribute('data-note-box') === 'true') return 'note';
+  if (tag === 'label' && (el.classList.contains('option-item') || el.classList.contains('checkbox-item'))) return 'item';
+  return 'other';
+}
+
+function getIcone(tipo){
+  return {section:'📁', fieldset:'🧩', item:'🔘', note:'📝', other:'📄'}[tipo] || '❔';
+}
+
+function getFormEl(){
+  if (!importedDoc) return null;
+  return importedDoc.querySelector('#botanicaForm') || importedDoc.querySelector('form') || importedDoc.body;
+}
+
+function extrairChaveGuia(legendEl){
+  if (!legendEl) return '';
+  const btn = legendEl.querySelector('button.btn-guide');
+  if (!btn) return '';
+  const onclick = btn.getAttribute('onclick') || '';
+  const m = onclick.match(/abrirModalGuia\('([^']*)'\)/);
+  return m ? m[1] : '';
+}
+
+function getRotulo(el){
+  const tipo = getNodeType(el);
+  if (tipo === 'section'){
+    const s = el.querySelector(':scope > summary');
+    return s ? s.textContent.trim() : '(seção sem título)';
+  }
+  if (tipo === 'fieldset'){
+    const legend = el.querySelector(':scope > legend');
+    if (!legend) return '(fieldset sem legenda)';
+    const clone = legend.cloneNode(true);
+    clone.querySelectorAll('button').forEach(b=>b.remove());
+    return clone.textContent.trim() || '(sem título)';
+  }
+  if (tipo === 'note'){
+    const attrLabel = el.getAttribute('data-note-label');
+    const lblEl = el.querySelector('.note-label');
+    const ta = el.querySelector('textarea');
+    const titulo = (attrLabel || (lblEl ? lblEl.textContent.replace(/^📝\s*/, '') : '') || '').trim();
+    const idTxt = ta && ta.id ? ` (#${ta.id})` : '';
+    return (titulo || 'Caixa de Nota') + idTxt;
+  }
+  if (tipo === 'item'){
+    const strong = el.querySelector('.option-text strong');
+    if (strong) return strong.textContent.trim();
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('input,button').forEach(n=>n.remove());
+    return clone.textContent.trim() || '(item sem texto)';
+  }
+  const tag = el.tagName ? el.tagName.toLowerCase() : 'nó';
+  const idAttr = el.id ? '#'+el.id : '';
+  const classAttr = el.className && typeof el.className === 'string' ? '.'+el.className.trim().split(/\s+/).join('.') : '';
+  return `<${tag}${idAttr}${classAttr}>`;
+}
+
+function childrenOf(el, tipo){
+  if (tipo === 'section'){
+    const content = el.querySelector(':scope > .section-content');
+    return content ? Array.from(content.children) : Array.from(el.children).filter(c=>c.tagName!=='SUMMARY');
+  }
+  if (tipo === 'fieldset'){
+    return Array.from(el.children).filter(c=>c.tagName !== 'LEGEND');
+  }
+  return [];
+}
+
+/* ==========================================================================
+   ÁRVORE (TREE EXPLORER)
+   ========================================================================== */
+function buildTreeHTML(el){
+  const sid = getSid(el);
+  const tipo = getNodeType(el);
+  const rotulo = getRotulo(el);
+  const icone = getIcone(tipo);
+  const selecionado = sid === selectedSid ? ' selected' : '';
+
+  if (tipo === 'section' || tipo === 'fieldset'){
+    const filhos = childrenOf(el, tipo);
+    const aberto = expandedSids.has(sid) ? ' open' : '';
+    let html = `<details class="tnode tnode-${tipo}"${aberto} data-sid="${sid}" ontoggle="onNodeToggle(${sid}, this.open)">`;
+    html += `<summary class="tnode-summary${selecionado}" onclick="selecionarNo(${sid})">`;
+    html += `<span class="tnode-icon">${icone}</span><span class="tnode-label">${escaparHTML(rotulo)}</span>`;
+    html += `<span class="tnode-count">${filhos.length}</span></summary>`;
+    html += `<div class="tnode-children">`;
+    html += filhos.length ? filhos.map(f=>buildTreeHTML(f)).join('') : `<div class="tnode-empty">— vazio —</div>`;
+    html += `</div></details>`;
+    return html;
+  }
+  return `<div class="tnode tnode-${tipo} tnode-leaf${selecionado}" data-sid="${sid}" onclick="selecionarNo(${sid})"><span class="tnode-icon">${icone}</span><span class="tnode-label">${escaparHTML(rotulo)}</span></div>`;
+}
+
+function onNodeToggle(sid, aberto){
+  if (aberto) expandedSids.add(sid); else expandedSids.delete(sid);
+}
+
+function selecionarNo(sid){
+  selectedSid = sid;
+  let el = nodeMap.get(sid);
+  let p = el ? el.parentElement : null;
+  while (p){
+    if (p.__sid && (getNodeType(p)==='section' || getNodeType(p)==='fieldset')) expandedSids.add(p.__sid);
+    p = p.parentElement;
+  }
+  renderTree(); renderInspector();
+}
+
+function renderTree(){
+  const root = document.getElementById('treeRoot');
+  if (!importedDoc){ root.innerHTML = '<p class="tree-empty">Nenhum código importado ainda.</p>'; return; }
+  const formEl = getFormEl();
+  // Exibe tanto seções (details.section) quanto caixas de notas avulsas na raiz do formulário
+  const nosRaiz = formEl ? Array.from(formEl.children).filter(c=>{
+    const t = getNodeType(c);
+    return t === 'section' || t === 'note';
+  }) : [];
+  root.innerHTML = nosRaiz.length ? nosRaiz.map(s=>buildTreeHTML(s)).join('') : '<p class="tree-empty">Nenhuma seção ou nota encontrada no formulário.</p>';
+}
+
+/* ==========================================================================
+   REORDENAÇÃO DE ELEMENTOS (⬆️ SUBIR / ⬇️ DESCER)
+   ========================================================================== */
+function podeMover(el, direcao){
+  if (!el || !el.parentElement) return false;
+  if (direcao < 0){
+    const ant = el.previousElementSibling;
+    if (!ant) return false;
+    if (ant.tagName === 'SUMMARY' || ant.tagName === 'LEGEND') return false;
+    return true;
+  } else {
+    return !!el.nextElementSibling;
+  }
+}
+
+function moverNo(sid, direcao){
+  const el = nodeMap.get(sid);
+  if (!el || !el.parentElement) return;
+  const parent = el.parentElement;
+  if (direcao < 0){
+    const ant = el.previousElementSibling;
+    if (!ant || ant.tagName === 'SUMMARY' || ant.tagName === 'LEGEND'){
+      alerta('Este item já está no topo deste nível.');
+      return;
+    }
+    parent.insertBefore(el, ant);
+    registrarLog(`Elemento movido para cima: "${getRotulo(el)}"`);
+  } else {
+    const prox = el.nextElementSibling;
+    if (!prox){
+      alerta('Este item já está no final deste nível.');
+      return;
+    }
+    parent.insertBefore(prox, el);
+    registrarLog(`Elemento movido para baixo: "${getRotulo(el)}"`);
+  }
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+function renderBotoesMover(sid, tagClass, tagText){
+  const el = nodeMap.get(sid);
+  const upDisabled = !podeMover(el, -1) ? 'disabled' : '';
+  const downDisabled = !podeMover(el, 1) ? 'disabled' : '';
+  return `
+    <div class="insp-header-bar">
+      <div class="insp-tag ${tagClass || ''}">${tagText}</div>
+      <div class="insp-move-group">
+        <button type="button" class="btn-move" onclick="moverNo(${sid}, -1)" ${upDisabled} title="Mover para cima">⬆️ Subir</button>
+        <button type="button" class="btn-move" onclick="moverNo(${sid}, 1)" ${downDisabled} title="Mover para baixo">⬇️ Descer</button>
+      </div>
+    </div>`;
+}
+
+/* ==========================================================================
+   INSPETOR CONTEXTUAL
+   ========================================================================== */
+function renderInspector(){
+  const box = document.getElementById('inspetorConteudo');
+  if (!selectedSid || !nodeMap.has(selectedSid)){
+    box.innerHTML = '<p class="inspector-empty-msg">Selecione um nó na árvore ao lado para editar, mover, adicionar ou excluir.</p>';
+    return;
+  }
+  const el = nodeMap.get(selectedSid);
+  const tipo = getNodeType(el);
+  if (tipo === 'section') box.innerHTML = inspetorSecao(el);
+  else if (tipo === 'fieldset') box.innerHTML = inspetorFieldset(el);
+  else if (tipo === 'note') box.innerHTML = inspetorNota(el);
+  else if (tipo === 'item') box.innerHTML = inspetorItem(el);
+  else box.innerHTML = inspetorOutro(el);
+}
+
+function inspetorSecao(el){
+  const sid = getSid(el);
+  const titulo = el.querySelector(':scope > summary')?.textContent.trim() || '';
+  const aberta = el.hasAttribute('open');
+  return `
+    <div class="insp-card">
+      ${renderBotoesMover(sid, '', '📁 SEÇÃO · NÍVEL 1')}
+      <label>Título da Seção</label>
+      <input type="text" id="insp_titulo" value="${atributoEscape(titulo)}">
+      <label class="insp-check"><input type="checkbox" id="insp_aberta" ${aberta?'checked':''}> Aberta por padrão ao carregar</label>
+      <div class="insp-actions">
+        <button class="btn-save" onclick="salvarSecao(${sid})">💾 Salvar Alterações</button>
+      </div>
+      <hr>
+      <p class="insp-hint">Você pode criar subseções (Fieldsets) ou adicionar Caixas de Notas diretamente nesta seção (inclusive criar uma seção inteira só de anotações):</p>
+      <div class="insp-actions">
+        <button class="btn-add" onclick="abrirDialogAdicionarFieldset(${sid})">➕ Adicionar Fieldset</button>
+        <button class="btn-note" onclick="abrirDialogAdicionarNota(${sid})">📝 Adicionar Caixa de Nota</button>
+        <button class="btn-danger" onclick="confirmarExclusao(${sid}, 'seção')">🗑️ Excluir Seção</button>
+      </div>
+    </div>`;
+}
+
+function inspetorFieldset(el){
+  const sid = getSid(el);
+  const legend = el.querySelector(':scope > legend');
+  const legendClone = legend ? legend.cloneNode(true) : null;
+  if (legendClone) legendClone.querySelectorAll('button').forEach(b=>b.remove());
+  const textoLegenda = legendClone ? legendClone.textContent.trim() : '';
+  const estiloAtual = el.classList.contains('option-group') ? 'option-group' : (el.classList.contains('checkbox-grid') ? 'checkbox-grid' : 'padrao');
+  const chaveGuia = extrairChaveGuia(legend);
+  const filhos = childrenOf(el, 'fieldset').length;
+  return `
+    <div class="insp-card">
+      ${renderBotoesMover(sid, '', `🧩 FIELDSET · NÍVEL 2 · ${filhos} filho(s)`)}
+      <label>Legenda / Título</label>
+      <input type="text" id="insp_legenda" value="${atributoEscape(textoLegenda)}">
+      <label>Estilo do Grupo</label>
+      <select id="insp_estilo">
+        <option value="padrao" ${estiloAtual==='padrao'?'selected':''}>Padrão (sem classe)</option>
+        <option value="option-group" ${estiloAtual==='option-group'?'selected':''}>Opção com descrição (.option-group)</option>
+        <option value="checkbox-grid" ${estiloAtual==='checkbox-grid'?'selected':''}>Grade compacta (.checkbox-grid)</option>
+      </select>
+      <label>Chave de Guia (opcional — injeta botão 📖 Guia)</label>
+      <input type="text" id="insp_chave_guia" value="${atributoEscape(chaveGuia)}" placeholder="ex: filotaxia">
+      <div class="insp-actions">
+        <button class="btn-save" onclick="salvarFieldset(${sid})">💾 Salvar Alterações</button>
+      </div>
+      <hr>
+      <div class="insp-actions">
+        <button class="btn-add" onclick="abrirDialogAdicionarItem(${sid})">➕ Adicionar Item</button>
+        <button class="btn-note" onclick="abrirDialogAdicionarNota(${sid})">📝 Adicionar Caixa de Nota</button>
+        <button class="btn-add" onclick="abrirDialogAdicionarFieldset(${sid})">➕ Adicionar Sub-Fieldset</button>
+        <button class="btn-danger" onclick="confirmarExclusao(${sid}, 'fieldset')">🗑️ Excluir Fieldset</button>
+      </div>
+    </div>`;
+}
+
+function inspetorNota(el){
+  const sid = getSid(el);
+  const ta = el.querySelector('textarea');
+  const lbl = el.querySelector('.note-label');
+  const titulo = el.getAttribute('data-note-label') || (lbl ? lbl.textContent.replace(/^📝\s*/, '').trim() : 'Anotações');
+  const ocultarRotulo = el.getAttribute('data-hide-label') === 'true';
+  const placeholder = ta ? (ta.getAttribute('placeholder') || '') : '';
+  const idCampo = ta ? (ta.id || '') : '';
+  const rows = ta ? (ta.getAttribute('rows') || '3') : '3';
+
+  return `
+    <div class="insp-card">
+      ${renderBotoesMover(sid, 'tag-note', '📝 CAIXA DE NOTA (ANOTAÇÃO DE CAMPO)')}
+      <p class="insp-hint">Esta caixa de texto salva automaticamente no celular e é anexada ao relatório final (<code>.TXT</code> e <code>.MD</code>) sempre que contiver anotações.</p>
+      <label>Título / Rótulo da Caixa de Nota</label>
+      <input type="text" id="insp_nota_titulo" value="${atributoEscape(titulo)}" placeholder="ex: Observações Ecológicas">
+      <label>Dica Interna (Placeholder)</label>
+      <input type="text" id="insp_nota_placeholder" value="${atributoEscape(placeholder)}" placeholder="ex: Anote detalhes pontuais aqui...">
+      <label>Identificador Único (id do campo para backup JSON e relatório)</label>
+      <input type="text" id="insp_nota_id" value="${atributoEscape(idCampo)}" placeholder="ex: nota_ecologia">
+      <label>Altura Inicial (número de linhas visíveis)</label>
+      <input type="number" id="insp_nota_rows" min="2" max="15" value="${atributoEscape(rows)}">
+      <label class="insp-check">
+        <input type="checkbox" id="insp_nota_ocultar_rotulo" ${ocultarRotulo ? 'checked' : ''}>
+        Ocultar barra de título acima da caixa (exibir apenas o campo de texto)
+      </label>
+      <div class="insp-actions">
+        <button class="btn-save" onclick="salvarNota(${sid})">💾 Salvar Alterações</button>
+      </div>
+      <hr>
+      <div class="insp-actions">
+        <button class="btn-danger" onclick="confirmarExclusao(${sid}, 'caixa de nota')">🗑️ Excluir Caixa de Nota</button>
+      </div>
+    </div>`;
+}
+
+function inspetorItem(el){
+  const sid = getSid(el);
+  const input = el.querySelector('input');
+  const tipo = input ? input.type : 'checkbox';
+  const modo = (input && input.name) ? 'grupo' : 'unico';
+  const isOptionGroup = el.classList.contains('option-item');
+  let textoPrincipal = '', textoDescritivo = '';
+  if (isOptionGroup){
+    const strongClone = el.querySelector('.option-text strong')?.cloneNode(true);
+    if (strongClone) strongClone.querySelectorAll('button').forEach(b=>b.remove());
+    textoPrincipal = strongClone ? strongClone.textContent.trim() : '';
+    textoDescritivo = el.querySelector('.option-text span')?.textContent.trim() || '';
+  } else {
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('input,em,button').forEach(n=>n.remove());
+    textoPrincipal = clone.textContent.trim();
+    textoDescritivo = el.querySelector('em')?.textContent.trim() || '';
+  }
+  return `
+    <div class="insp-card">
+      ${renderBotoesMover(sid, '', '🔘 ITEM / OPÇÃO · NÍVEL 3')}
+      <label>Modo do Campo</label>
+      <select id="insp_modo">
+        <option value="grupo" ${modo==='grupo'?'selected':''}>Grupo de opções (name + value)</option>
+        <option value="unico" ${modo==='unico'?'selected':''}>Campo único (id, verdadeiro/falso)</option>
+      </select>
+      <label>Tipo de Entrada</label>
+      <select id="insp_tipo">
+        <option value="radio" ${tipo==='radio'?'selected':''}>Rádio (escolha única)</option>
+        <option value="checkbox" ${tipo==='checkbox'?'selected':''}>Checkbox (múltipla escolha)</option>
+      </select>
+      <label>Texto Principal (visível)</label>
+      <input type="text" id="insp_texto_principal" value="${atributoEscape(textoPrincipal)}">
+      <label>Texto Descritivo / Dica (opcional)</label>
+      <input type="text" id="insp_texto_descritivo" value="${atributoEscape(textoDescritivo)}">
+      <label>Atributo name (modo Grupo)</label>
+      <input type="text" id="insp_name" value="${atributoEscape(input?.name||'')}">
+      <label>Atributo value (modo Grupo)</label>
+      <input type="text" id="insp_value" value="${atributoEscape(input?.value||'')}">
+      <label>Atributo id (modo Campo Único)</label>
+      <input type="text" id="insp_id" value="${atributoEscape(input?.id||'')}">
+      <div class="insp-actions">
+        <button class="btn-save" onclick="salvarItem(${sid})">💾 Salvar Alterações</button>
+      </div>
+      <hr>
+      <div class="insp-actions">
+        <button class="btn-danger" onclick="confirmarExclusao(${sid}, 'item')">🗑️ Excluir Item</button>
+      </div>
+    </div>`;
+}
+
+function inspetorOutro(el){
+  const sid = getSid(el);
+  return `
+    <div class="insp-card">
+      ${renderBotoesMover(sid, '', '📄 ELEMENTO LIVRE (edição bruta)')}
+      <p class="insp-hint">Este elemento não é uma Seção, Fieldset, Nota ou Item padrão (ex: input solto, .escape-valve, .foto-input-group). Edite o HTML bruto abaixo.</p>
+      <textarea id="insp_raw" class="insp-raw">${escaparHTML(el.outerHTML)}</textarea>
+      <div class="insp-actions">
+        <button class="btn-save" onclick="salvarOutro(${sid})">💾 Salvar HTML Bruto</button>
+      </div>
+      <hr>
+      <div class="insp-actions">
+        <button class="btn-danger" onclick="confirmarExclusao(${sid}, 'elemento')">🗑️ Excluir Elemento</button>
+      </div>
+    </div>`;
+}
+
+/* ==========================================================================
+   IDENTIFICADORES (name/id) — usados para o Scrubber
+   ========================================================================== */
+function coletarIdentificadores(el){
+  const ids = new Set();
+  if (el.querySelectorAll){
+    el.querySelectorAll('[name],[id]').forEach(n=>{
+      if (n.name) ids.add('name:'+n.name);
+      if (n.id) ids.add('id:'+n.id);
+    });
+  }
+  if (el.name) ids.add('name:'+el.name);
+  if (el.id) ids.add('id:'+el.id);
+  return ids;
+}
+function existeNoDocumentoGlobal(tipo, nome){
+  return tipo === 'name'
+    ? !!importedDoc.querySelector(`[name="${CSS.escape(nome)}"]`)
+    : !!importedDoc.getElementById(nome);
+}
+
+/* ==========================================================================
+   SALVAR EDIÇÕES NO INSPETOR
+   ========================================================================== */
+function salvarSecao(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const titulo = document.getElementById('insp_titulo').value.trim();
+  const aberta = document.getElementById('insp_aberta').checked;
+  const summary = el.querySelector(':scope > summary');
+  if (summary) summary.textContent = titulo;
+  if (aberta) el.setAttribute('open',''); else el.removeAttribute('open');
+  registrarLog(`Seção atualizada: "${titulo}"`);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+function salvarFieldset(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const legendaTexto = document.getElementById('insp_legenda').value.trim();
+  const estilo = document.getElementById('insp_estilo').value;
+  const chaveGuia = document.getElementById('insp_chave_guia').value.trim();
+
+  el.classList.remove('option-group','checkbox-grid');
+  if (estilo !== 'padrao') el.classList.add(estilo);
+
+  let legend = el.querySelector(':scope > legend');
+  if (!legend){
+    legend = importedDoc.createElement('legend');
+    legend.className = 'field-label';
+    el.insertBefore(legend, el.firstChild);
+  }
+  legend.innerHTML = '';
+  legend.appendChild(importedDoc.createTextNode(legendaTexto + (chaveGuia ? ' ' : '')));
+  if (chaveGuia){
+    const btn = importedDoc.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-guide';
+    btn.setAttribute('onclick', `abrirModalGuia('${chaveGuia.replace(/'/g,"\\'")}')`);
+    btn.innerHTML = '📖 Guia';
+    legend.appendChild(btn);
+    if (!(chaveGuia in conteudoEstudos)){
+      registrarLog(`Aviso: chave de guia "${chaveGuia}" ainda não existe no Dicionário. Crie-a no Gestor de Dicionário.`);
+    }
+  }
+  registrarLog(`Fieldset atualizado: "${legendaTexto}"`);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+function salvarNota(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const titulo = document.getElementById('insp_nota_titulo').value.trim() || 'Anotações';
+  const placeholder = document.getElementById('insp_nota_placeholder').value.trim();
+  let novoId = document.getElementById('insp_nota_id').value.trim();
+  const rows = Math.max(2, Math.min(15, parseInt(document.getElementById('insp_nota_rows').value, 10) || 3));
+  const ocultarRotulo = document.getElementById('insp_nota_ocultar_rotulo').checked;
+
+  const ta = el.querySelector('textarea');
+  const idAntigo = ta ? ta.id : '';
+  if (!novoId) novoId = idAntigo || slugifyId(titulo, 'nota');
+
+  el.setAttribute('data-note-box', 'true');
+  el.setAttribute('data-note-label', titulo);
+  if (ocultarRotulo) el.setAttribute('data-hide-label', 'true');
+  else el.removeAttribute('data-hide-label');
+
+  let lbl = el.querySelector('.note-label');
+  if (!lbl){
+    lbl = importedDoc.createElement('label');
+    lbl.className = 'note-label';
+    el.insertBefore(lbl, el.firstChild);
+  }
+  lbl.setAttribute('for', novoId);
+  lbl.textContent = `📝 ${titulo}`;
+  lbl.style.display = ocultarRotulo ? 'none' : '';
+
+  if (ta){
+    ta.id = novoId;
+    ta.name = novoId;
+    ta.setAttribute('rows', String(rows));
+    ta.setAttribute('placeholder', placeholder);
+  }
+
+  if (idAntigo && novoId && idAntigo !== novoId && !existeNoDocumentoGlobal('id', idAntigo)){
+    renamedFieldNames.set(idAntigo, novoId);
+    registrarLog(`ID da nota renomeado: "${idAntigo}" → "${novoId}"`);
+  }
+
+  registrarLog(`Caixa de Nota atualizada: "${titulo}" (#${novoId})`);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+function salvarItem(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const modo = document.getElementById('insp_modo').value;
+  const tipo = document.getElementById('insp_tipo').value;
+  const textoPrincipal = document.getElementById('insp_texto_principal').value.trim();
+  const textoDescritivo = document.getElementById('insp_texto_descritivo').value.trim();
+  const novoName = document.getElementById('insp_name').value.trim();
+  const novoValue = document.getElementById('insp_value').value.trim();
+  const novoId = document.getElementById('insp_id').value.trim();
+
+  const input = el.querySelector('input');
+  const nomeAntigo = input.name; const idAntigo = input.id;
+  input.type = tipo;
+  if (modo === 'grupo'){
+    input.removeAttribute('id');
+    input.name = novoName; input.value = novoValue;
+  } else {
+    input.removeAttribute('name'); input.removeAttribute('value');
+    input.id = novoId;
+  }
+
+  if (nomeAntigo && novoName && nomeAntigo !== novoName && !existeNoDocumentoGlobal('name', nomeAntigo)){
+    renamedFieldNames.set(nomeAntigo, novoName);
+    registrarLog(`Campo renomeado detectado: "${nomeAntigo}" → "${novoName}" (relatório será atualizado)`);
+  }
+  if (idAntigo && novoId && idAntigo !== novoId && !existeNoDocumentoGlobal('id', idAntigo)){
+    renamedFieldNames.set(idAntigo, novoId);
+    registrarLog(`Campo renomeado detectado: "${idAntigo}" → "${novoId}" (relatório será atualizado)`);
+  }
+
+  const isOptionGroup = el.classList.contains('option-item');
+  if (isOptionGroup){
+    let div = el.querySelector('.option-text');
+    if (!div){ div = importedDoc.createElement('div'); div.className = 'option-text'; el.appendChild(div); }
+    div.innerHTML = '';
+    const strong = importedDoc.createElement('strong'); strong.textContent = textoPrincipal;
+    const span = importedDoc.createElement('span'); span.textContent = textoDescritivo;
+    div.append(strong, span);
+  } else {
+    Array.from(el.childNodes).forEach(n=>{ if (n !== input) n.remove(); });
+    el.appendChild(importedDoc.createTextNode(' ' + textoPrincipal + ' '));
+    if (textoDescritivo){
+      const em = importedDoc.createElement('em'); em.textContent = textoDescritivo;
+      el.appendChild(em);
+    }
+  }
+  registrarLog(`Item atualizado: "${textoPrincipal}"`);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+function salvarOutro(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const novoHTML = document.getElementById('insp_raw').value;
+  const antesIds = coletarIdentificadores(el);
+  const temp = importedDoc.createElement('div');
+  temp.innerHTML = novoHTML;
+  const novoEl = temp.firstElementChild;
+  if (!novoEl){ alerta('HTML inválido — elemento não substituído.'); return; }
+  el.replaceWith(novoEl);
+  nodeMap.set(sid, novoEl); novoEl.__sid = sid;
+  const depoisIds = coletarIdentificadores(novoEl);
+  antesIds.forEach(chave=>{
+    if (!depoisIds.has(chave)){
+      const [tipo, nome] = chave.split(':');
+      if (!existeNoDocumentoGlobal(tipo, nome)){
+        deletedFieldNames.add(nome);
+        registrarLog(`Campo órfão agendado para remoção do relatório: "${nome}"`);
+      }
+    }
+  });
+  if (selectedSid === sid) selectedSid = getSid(novoEl);
+  registrarLog('Elemento editado via HTML bruto.');
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   EXCLUSÃO
+   ========================================================================== */
+function confirmarExclusao(sid, rotuloTipo){
+  const el = nodeMap.get(sid); if(!el) return;
+  abrirModal(`
+    <h3>⚠️ Confirmar Exclusão</h3>
+    <p>Tem certeza que deseja excluir completamente este(a) <strong>${rotuloTipo}</strong>? Todos os elementos filhos serão removidos e esta ação não pode ser desfeita.</p>
+    <div class="modal-actions">
+      <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-danger" onclick="excluirNo(${sid})">🗑️ Sim, Excluir</button>
+    </div>
+  `);
+}
+
+function excluirNo(sid){
+  const el = nodeMap.get(sid); if(!el) return;
+  const antes = coletarIdentificadores(el);
+  el.remove();
+  antes.forEach(chave=>{
+    const [tipo, nome] = chave.split(':');
+    if (!existeNoDocumentoGlobal(tipo, nome)){
+      deletedFieldNames.add(nome);
+      registrarLog(`Campo órfão agendado para remoção do relatório: "${nome}"`);
+    }
+  });
+  if (selectedSid === sid) selectedSid = null;
+  fecharModal();
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   ADICIONAR — SEÇÃO (COM OPÇÃO DE JÁ NASCER COM CAIXA DE NOTA)
+   ========================================================================== */
+function adicionarSecaoDialog(){
+  if (!importedDoc){ alerta('Importe um código primeiro.'); return; }
+  abrirModal(`
+    <h3>➕ Adicionar Nova Seção</h3>
+    <label>Título da Seção</label>
+    <input type="text" id="novo_titulo_secao" placeholder="ex: 6. Anotações Ecológicas e Fenologia">
+    <label class="insp-check"><input type="checkbox" id="novo_aberta"> Aberta por padrão</label>
+    <label class="insp-check"><input type="checkbox" id="novo_com_nota" checked> Já incluir uma Caixa de Nota dentro desta seção</label>
+    <div class="modal-actions">
+      <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-add" onclick="criarSecaoConfirmar()">Criar Seção</button>
+    </div>
+  `);
+}
+function criarSecaoConfirmar(){
+  const titulo = document.getElementById('novo_titulo_secao').value.trim();
+  const aberta = document.getElementById('novo_aberta').checked;
+  const comNota = document.getElementById('novo_com_nota').checked;
+  if (!titulo){ alerta('Informe o título da seção.'); return; }
+  const formEl = getFormEl();
+  const det = importedDoc.createElement('details'); det.className = 'section';
+  if (aberta) det.setAttribute('open','');
+  const summary = importedDoc.createElement('summary'); summary.textContent = titulo;
+  const content = importedDoc.createElement('div'); content.className = 'section-content';
+  det.append(summary, content);
+
+  if (comNota){
+    const idNota = slugifyId(titulo, 'nota');
+    const notaEl = construirElementoNotaDOM(titulo, 'Anotações e observações sobre ' + titulo + '...', idNota, 3, false);
+    content.appendChild(notaEl);
+  }
+
+  formEl.appendChild(det);
+  const sidSecao = getSid(det);
+  if (comNota) expandedSids.add(sidSecao);
+  registrarLog(`Nova seção criada: "${titulo}"${comNota ? ' (com Caixa de Nota)' : ''}`);
+  fecharModal();
+  selectedSid = sidSecao;
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   ADICIONAR — FIELDSET
+   ========================================================================== */
+function abrirDialogAdicionarFieldset(sidPai){
+  abrirModal(`
+    <h3>➕ Adicionar Fieldset (Subseção)</h3>
+    <label>Legenda / Título</label>
+    <input type="text" id="novo_legenda" placeholder="ex: 1.12 Observações ou Nova Característica">
+    <label>Estilo do Grupo</label>
+    <select id="novo_estilo">
+      <option value="padrao">Padrão (ideal para Caixas de Nota ou campos livres)</option>
+      <option value="option-group">Opção com descrição (.option-group)</option>
+      <option value="checkbox-grid">Grade compacta (.checkbox-grid)</option>
+    </select>
+    <label>Chave de Guia (opcional)</label>
+    <input type="text" id="novo_chave_guia" placeholder="ex: nova_caracteristica">
+    <label class="insp-check"><input type="checkbox" id="novo_fs_com_nota"> Já incluir uma Caixa de Nota dentro deste Fieldset</label>
+    <div class="modal-actions">
+      <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-add" onclick="criarFieldsetConfirmar(${sidPai})">Criar Fieldset</button>
+    </div>
+  `);
+}
+function criarFieldsetConfirmar(sidPai){
+  const pai = nodeMap.get(sidPai); if(!pai) return;
+  const legenda = document.getElementById('novo_legenda').value.trim();
+  const estilo = document.getElementById('novo_estilo').value;
+  const chaveGuia = document.getElementById('novo_chave_guia').value.trim();
+  const comNota = document.getElementById('novo_fs_com_nota').checked;
+  if (!legenda){ alerta('Informe a legenda do fieldset.'); return; }
+
+  const tipoPai = getNodeType(pai);
+  const alvo = tipoPai === 'section' ? (pai.querySelector(':scope > .section-content') || pai) : pai;
+
+  const fs = importedDoc.createElement('fieldset');
+  if (estilo !== 'padrao') fs.className = estilo;
+  const legend = importedDoc.createElement('legend'); legend.className = 'field-label';
+  legend.appendChild(importedDoc.createTextNode(legenda + (chaveGuia ? ' ' : '')));
+  if (chaveGuia){
+    const btn = importedDoc.createElement('button');
+    btn.type = 'button'; btn.className = 'btn-guide';
+    btn.setAttribute('onclick', `abrirModalGuia('${chaveGuia.replace(/'/g,"\\'")}')`);
+    btn.innerHTML = '📖 Guia';
+    legend.appendChild(btn);
+  }
+  fs.appendChild(legend);
+
+  if (comNota){
+    const idNota = slugifyId(legenda, 'nota');
+    const notaEl = construirElementoNotaDOM(legenda, 'Digite suas anotações...', idNota, 3, false);
+    fs.appendChild(notaEl);
+  }
+
+  alvo.appendChild(fs);
+  const sidFs = getSid(fs);
+  registrarLog(`Novo fieldset criado: "${legenda}"${comNota ? ' (com Caixa de Nota)' : ''}`);
+  fecharModal();
+  selectedSid = sidFs;
+  expandedSids.add(sidPai);
+  if (comNota) expandedSids.add(sidFs);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   ADICIONAR — CAIXA DE NOTA (RAIZ, SEÇÃO OU FIELDSET)
+   ========================================================================== */
+function construirElementoNotaDOM(titulo, placeholder, idCampo, rows, ocultarRotulo){
+  const wrap = importedDoc.createElement('div');
+  wrap.className = 'note-box';
+  wrap.setAttribute('data-note-box', 'true');
+  wrap.setAttribute('data-note-label', titulo);
+  if (ocultarRotulo) wrap.setAttribute('data-hide-label', 'true');
+
+  const lbl = importedDoc.createElement('label');
+  lbl.className = 'note-label';
+  lbl.setAttribute('for', idCampo);
+  lbl.textContent = `📝 ${titulo}`;
+  if (ocultarRotulo) lbl.style.display = 'none';
+
+  const ta = importedDoc.createElement('textarea');
+  ta.id = idCampo;
+  ta.name = idCampo;
+  ta.className = 'note-textarea';
+  ta.setAttribute('rows', String(rows || 3));
+  ta.setAttribute('placeholder', placeholder || 'Digite suas anotações de campo...');
+  ta.setAttribute('oninput', "this.style.height='auto';this.style.height=(this.scrollHeight)+'px';if(typeof saveState==='function')saveState();");
+
+  wrap.append(lbl, ta);
+  return wrap;
+}
+
+function abrirDialogAdicionarNota(sidPai){
+  if (!importedDoc){ alerta('Importe um código primeiro.'); return; }
+  let contextoDesc = 'na Raiz do Formulário (fora de seções)';
+  let sugestaoTitulo = 'Anotações Gerais';
+  if (sidPai && nodeMap.has(sidPai)){
+    const pai = nodeMap.get(sidPai);
+    const rotPai = getRotulo(pai);
+    contextoDesc = `dentro de "${rotPai}"`;
+    sugestaoTitulo = `Notas — ${rotPai.replace(/^[0-9.\s🍀🌿🍁🔶]+/, '').slice(0, 28).trim() || 'Campo'}`;
+  }
+  const idSugerido = slugifyId(sugestaoTitulo, 'nota');
+
+  abrirModal(`
+    <h3>📝 Adicionar Caixa de Nota</h3>
+    <p class="insp-hint">Local: <strong>${escaparHTML(contextoDesc)}</strong>. Esta nota aparecerá automaticamente no relatório final (<code>.TXT</code> e <code>.MD</code>) quando for preenchida em campo.</p>
+    <label>Título / Rótulo da Nota</label>
+    <input type="text" id="nova_nota_titulo" value="${atributoEscape(sugestaoTitulo)}" oninput="atualizarSugestaoIdNota(this.value)">
+    <label>Texto de Ajuda (Placeholder)</label>
+    <input type="text" id="nova_nota_placeholder" value="Anotações pontuais de campo...">
+    <label>ID Único do Campo</label>
+    <input type="text" id="nova_nota_id" value="${atributoEscape(idSugerido)}">
+    <label>Altura Inicial (linhas)</label>
+    <input type="number" id="nova_nota_rows" value="3" min="2" max="15">
+    <label class="insp-check">
+      <input type="checkbox" id="nova_nota_ocultar_rotulo">
+      Ocultar barra de título acima da caixa de texto
+    </label>
+    <div class="modal-actions">
+      <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-note" onclick="criarNotaConfirmar(${sidPai || 0})">📝 Criar Caixa de Nota</button>
+    </div>
+  `);
+}
+
+function atualizarSugestaoIdNota(val){
+  const inp = document.getElementById('nova_nota_id');
+  if (inp) inp.value = slugifyId(val, 'nota');
+}
+
+function criarNotaConfirmar(sidPai){
+  const titulo = document.getElementById('nova_nota_titulo').value.trim() || 'Anotações';
+  const placeholder = document.getElementById('nova_nota_placeholder').value.trim();
+  let idCampo = document.getElementById('nova_nota_id').value.trim();
+  const rows = Math.max(2, Math.min(15, parseInt(document.getElementById('nova_nota_rows').value, 10) || 3));
+  const ocultarRotulo = document.getElementById('nova_nota_ocultar_rotulo').checked;
+
+  if (!idCampo) idCampo = slugifyId(titulo, 'nota');
+  if (importedDoc.getElementById(idCampo)){
+    idCampo = slugifyId(idCampo, 'nota');
+  }
+
+  const notaEl = construirElementoNotaDOM(titulo, placeholder, idCampo, rows, ocultarRotulo);
+
+  if (!sidPai || !nodeMap.has(sidPai)){
+    const formEl = getFormEl();
+    formEl.appendChild(notaEl);
+    registrarLog(`Nova Caixa de Nota criada na raiz: "${titulo}" (#${idCampo})`);
+  } else {
+    const pai = nodeMap.get(sidPai);
+    const tipoPai = getNodeType(pai);
+    const alvo = tipoPai === 'section' ? (pai.querySelector(':scope > .section-content') || pai) : pai;
+    alvo.appendChild(notaEl);
+    expandedSids.add(sidPai);
+    registrarLog(`Nova Caixa de Nota criada em "${getRotulo(pai)}": "${titulo}" (#${idCampo})`);
+  }
+
+  fecharModal();
+  selectedSid = getSid(notaEl);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   ADICIONAR — ITEM
+   ========================================================================== */
+function abrirDialogAdicionarItem(sidPai){
+  const fs = nodeMap.get(sidPai);
+  const isOptionGroup = fs && fs.classList.contains('option-group');
+  abrirModal(`
+    <h3>➕ Adicionar Item / Opção</h3>
+    <label>Modo do Campo</label>
+    <select id="novo_modo">
+      <option value="grupo">Grupo de opções (name + value)</option>
+      <option value="unico">Campo único (id, verdadeiro/falso)</option>
+    </select>
+    <label>Tipo de Entrada</label>
+    <select id="novo_tipo">
+      <option value="radio">Rádio (escolha única)</option>
+      <option value="checkbox">Checkbox (múltipla escolha)</option>
+    </select>
+    <label>Texto Principal (visível)</label>
+    <input type="text" id="novo_texto_principal" placeholder="ex: Nova opção">
+    <label>Texto Descritivo / Dica (opcional)${isOptionGroup ? ' — recomendado neste grupo' : ''}</label>
+    <input type="text" id="novo_texto_descritivo" placeholder="Descrição breve...">
+    <label>Atributo name (modo Grupo)</label>
+    <input type="text" id="novo_name" placeholder="ex: nova_caracteristica">
+    <label>Atributo value (modo Grupo)</label>
+    <input type="text" id="novo_value" placeholder="ex: Novo Valor">
+    <label>Atributo id (modo Campo Único)</label>
+    <input type="text" id="novo_id" placeholder="ex: novo_campo_bool">
+    <div class="modal-actions">
+      <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-add" onclick="criarItemConfirmar(${sidPai})">Criar Item</button>
+    </div>
+  `);
+}
+function criarItemConfirmar(sidPai){
+  const fs = nodeMap.get(sidPai); if(!fs) return;
+  const modo = document.getElementById('novo_modo').value;
+  const tipo = document.getElementById('novo_tipo').value;
+  const textoPrincipal = document.getElementById('novo_texto_principal').value.trim();
+  const textoDescritivo = document.getElementById('novo_texto_descritivo').value.trim();
+  const name = document.getElementById('novo_name').value.trim();
+  const value = document.getElementById('novo_value').value.trim();
+  const id = document.getElementById('novo_id').value.trim();
+
+  if (!textoPrincipal){ alerta('Informe o texto principal do item.'); return; }
+  if (modo === 'grupo' && (!name || !value)){ alerta('Informe name e value para o modo Grupo.'); return; }
+  if (modo === 'unico' && !id){ alerta('Informe o id para o modo Campo Único.'); return; }
+
+  const isOptionGroup = fs.classList.contains('option-group');
+  const label = importedDoc.createElement('label');
+  label.className = isOptionGroup ? 'option-item' : 'checkbox-item';
+  const input = importedDoc.createElement('input');
+  input.type = tipo;
+  if (modo === 'grupo'){ input.name = name; input.value = value; }
+  else { input.id = id; }
+  label.appendChild(input);
+
+  if (isOptionGroup){
+    const div = importedDoc.createElement('div'); div.className = 'option-text';
+    const strong = importedDoc.createElement('strong'); strong.textContent = textoPrincipal;
+    const span = importedDoc.createElement('span'); span.textContent = textoDescritivo;
+    div.append(strong, span);
+    label.appendChild(div);
+  } else {
+    label.appendChild(importedDoc.createTextNode(' ' + textoPrincipal + ' '));
+    if (textoDescritivo){
+      const em = importedDoc.createElement('em'); em.textContent = textoDescritivo;
+      label.appendChild(em);
+    }
+  }
+  fs.appendChild(label);
+  registrarLog(`Novo item criado: "${textoPrincipal}"`);
+  fecharModal();
+  selectedSid = getSid(label);
+  expandedSids.add(sidPai);
+  recomputarScript(); renderTree(); renderInspector(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   SCRUBBER + INJETOR DE UPGRADE V12.2 NO DOCUMENTO E SCRIPT
+   ========================================================================== */
+const RUNTIME_MARKER_START = '/* === [INICIO BIOCOLETA UPGRADE RUNTIME V12.2] === */';
+const RUNTIME_MARKER_END   = '/* === [FIM BIOCOLETA UPGRADE RUNTIME V12.2] === */';
+
+function removerBlocoRuntimeUpgrade(texto){
+  const ini = texto.indexOf(RUNTIME_MARKER_START);
+  if (ini === -1) return texto;
+  const fim = texto.indexOf(RUNTIME_MARKER_END);
+  if (fim === -1) return texto.slice(0, ini).trimEnd();
+  return (texto.slice(0, ini) + texto.slice(fim + RUNTIME_MARKER_END.length)).trimEnd();
+}
+
+function aplicarUpgradeDOMeCSS(doc){
+  if (!doc || !doc.head || !doc.body) return;
+
+  // 1. Injeta ou atualiza Favicon SVG do App BioColeta
+  let linkIcon = doc.head.querySelector('link[rel="icon"]');
+  if (!linkIcon){
+    linkIcon = doc.createElement('link');
+    linkIcon.setAttribute('rel', 'icon');
+    linkIcon.setAttribute('type', 'image/svg+xml');
+    doc.head.appendChild(linkIcon);
+  }
+  linkIcon.setAttribute('href', APP_FAVICON_DATA_URI);
+
+  // 2. Corrige bug de chave "}" solta após .carousel-card img no style original
+  doc.head.querySelectorAll('style').forEach(st=>{
+    if (st.id === 'biocoleta-upgrade-v12-2-styles') return;
+    st.textContent = st.textContent.replace(/(\.carousel-card\s+img\s*\{[^}]*\})\s*\}/g, '$1');
+  });
+
+  // 3. Injeta ou atualiza <style id="biocoleta-upgrade-v12-2-styles">
+  let upStyle = doc.getElementById('biocoleta-upgrade-v12-2-styles');
+  if (!upStyle){
+    upStyle = doc.createElement('style');
+    upStyle.id = 'biocoleta-upgrade-v12-2-styles';
+    doc.head.appendChild(upStyle);
+  }
+  upStyle.textContent = ESTILOS_UPGRADE_V12_2;
+
+  // 4. Injeta o Lightbox de Zoom (#bioZoomOverlay) no body caso não exista
+  if (!doc.getElementById('bioZoomOverlay')){
+    const zoomDiv = doc.createElement('div');
+    zoomDiv.id = 'bioZoomOverlay';
+    zoomDiv.innerHTML = `
+      <div class="bio-zoom-topbar">
+        <div class="bio-zoom-title" id="bioZoomTitle">🔍 Lupa Botânica (100%)</div>
+        <div class="bio-zoom-controls">
+          <button type="button" class="bio-zoom-btn" onclick="ajustarZoomImagem(-0.5)" title="Diminuir Zoom">➖</button>
+          <button type="button" class="bio-zoom-btn" onclick="resetarZoomImagem()" title="Tamanho Original (1:1)">1:1</button>
+          <button type="button" class="bio-zoom-btn" onclick="ajustarZoomImagem(0.5)" title="Aumentar Zoom">➕</button>
+          <button type="button" class="bio-zoom-btn close-btn" onclick="fecharZoomImagem()" title="Fechar Lupa">✕</button>
+        </div>
+      </div>
+      <div class="bio-zoom-stage" id="bioZoomStage">
+        <img id="bioZoomImg" src="" alt="Imagem Ampliada">
+      </div>
+      <div class="bio-zoom-footer">Pinça (2 dedos) ou roda do mouse para Zoom · Duplo toque alterna 2.5x · Arraste para mover</div>
+    `;
+    doc.body.appendChild(zoomDiv);
+  }
+}
+
+function gerarCodigoRuntimeUpgradeV12_2(){
+  return `
+${RUNTIME_MARKER_START}
+/* ==========================================================================
+   🚀 MOTOR DE UPGRADE V12.2:
+   1. Markdown Expandido (Tabelas com Touch-Lock, Títulos, Callouts, Destaques)
+   2. Lupa Botânica Interativa (Pinch-to-Zoom Mobile, Duplo Toque, Roda Mouse e Pan)
+   3. Injeção Dinâmica Contextual de Caixas de Notas (.note-box) em gerarRelatorio()
+   4. Garantia de Links Diretos do GPS (Google Maps, OpenStreetMap, Street View)
+   ========================================================================== */
+
+// --- 1. PARSER MARKDOWN EXPANDIDO + TABELAS COM TRAVA DE TOQUE ---
+function formatarInlineMarkdownV12(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/\`([^\`]+)\`/g, '<code class="md-code">$1</code>')
+        .replace(/==(.*?)==/g, '<mark class="md-mark">$1</mark>')
+        .replace(/\\*\\*\\*(.*?)\\*\\*\\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
+        .replace(/\\*([^\\s*][^*]*?)\\*/g, '<em>$1</em>');
+}
+
+function parseMarkdown(texto) {
+    if (!texto) return '';
+    const rawLines = String(texto).replace(/\\r\\n/g, '\\n').split('\\n');
+    let result = [];
+    let inUl = false;
+    let inOl = false;
+    let inTable = false;
+    let tableRows = [];
+
+    function flushLists() {
+        if (inUl) { result.push('</ul>'); inUl = false; }
+        if (inOl) { result.push('</ol>'); inOl = false; }
+    }
+
+    function flushTable() {
+        if (!inTable || tableRows.length === 0) return;
+        inTable = false;
+        let aligns = [];
+        let bodyStartIdx = 1;
+        if (tableRows.length >= 2) {
+            const sepCells = tableRows[1];
+            const isSep = sepCells.every(c => /^:?-{2,}:?$/.test(c.trim()));
+            if (isSep) {
+                aligns = sepCells.map(c => {
+                    const t = c.trim();
+                    if (t.startsWith(':') && t.endsWith(':')) return 'center';
+                    if (t.endsWith(':')) return 'right';
+                    return 'left';
+                });
+                bodyStartIdx = 2;
+            }
+        }
+        let html = '<div class="md-table-wrap" data-no-swipe="true"><div class="md-table-hint">↔️ Deslize a tabela lateralmente</div><table class="md-table"><thead><tr>';
+        tableRows[0].forEach((cell, idx) => {
+            const al = aligns[idx] || 'left';
+            html += '<th style="text-align:' + al + ';">' + formatarInlineMarkdownV12(cell.trim()) + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        for (let r = bodyStartIdx; r < tableRows.length; r++) {
+            html += '<tr>';
+            tableRows[r].forEach((cell, idx) => {
+                const al = aligns[idx] || 'left';
+                html += '<td style="text-align:' + al + ';">' + formatarInlineMarkdownV12(cell.trim()) + '</td>';
+            });
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        result.push(html);
+        tableRows = [];
+    }
+
+    for (let i = 0; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        const trimmed = line.trim();
+
+        // Ignora comentários HTML internos como <!-- end list -->
+        if (/^<!--.*-->$/.test(trimmed)) continue;
+
+        // Detecção de linha de Tabela Markdown: | Col 1 | Col 2 |
+        if (trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length > 2) {
+            flushLists();
+            inTable = true;
+            const cells = trimmed.slice(1, -1).split('|');
+            tableRows.push(cells);
+            continue;
+        } else if (inTable) {
+            flushTable();
+        }
+
+        // Divisor Horizontal (--- ou ***)
+        if (/^(?:---|\\*\\*\\*|___)$/.test(trimmed)) {
+            flushLists();
+            result.push('<hr class="md-hr">');
+            continue;
+        }
+
+        // Títulos (#, ##, ###)
+        const hMatch = trimmed.match(/^(#{1,3})\\s+(.*)$/);
+        if (hMatch) {
+            flushLists();
+            const level = hMatch[1].length;
+            const tag = level === 1 ? 'h2' : (level === 2 ? 'h3' : 'h4');
+            result.push('<' + tag + '>' + formatarInlineMarkdownV12(hMatch[2]) + '</' + tag + '>');
+            continue;
+        }
+
+        // Callout / Citação (> texto)
+        if (trimmed.startsWith('>')) {
+            flushLists();
+            const quoteTxt = trimmed.replace(/^>\\s?/, '');
+            result.push('<blockquote class="md-callout">' + formatarInlineMarkdownV12(quoteTxt) + '</blockquote>');
+            continue;
+        }
+
+        // Lista não ordenada (- , * , • )
+        const ulMatch = trimmed.match(/^(?:[-•]|\\*)\\s+(.*)$/);
+        if (ulMatch) {
+            if (inOl) { result.push('</ol>'); inOl = false; }
+            if (!inUl) { result.push('<ul>'); inUl = true; }
+            result.push('<li>' + formatarInlineMarkdownV12(ulMatch[1]) + '</li>');
+            continue;
+        }
+
+        // Lista numerada (1. , 2. )
+        const olMatch = trimmed.match(/^\\d+\\.\\s+(.*)$/);
+        if (olMatch) {
+            if (inUl) { result.push('</ul>'); inUl = false; }
+            if (!inOl) { result.push('<ol>'); inOl = true; }
+            result.push('<li>' + formatarInlineMarkdownV12(olMatch[1]) + '</li>');
+            continue;
+        }
+
+        flushLists();
+        if (trimmed === '') {
+            result.push('<div style="height:8px;"></div>');
+        } else {
+            result.push('<p style="margin:0 0 6px 0;">' + formatarInlineMarkdownV12(line) + '</p>');
+        }
+    }
+    flushLists();
+    flushTable();
+    return result.join('');
+}
+
+// --- 2. RENDERIZAÇÃO DO CARROSSEL COM SUPORTE A LUPA E TRAVA DE TABELA ---
+renderizarCarrosselModal = function() {
+    const vp = document.getElementById('carouselViewport');
+    const dotsContainer = document.getElementById('modalDots');
+    const indicator = document.getElementById('modalPageIndicator');
+    if (!vp || !dotsContainer || !indicator) return;
+
+    vp.innerHTML = '';
+    dotsContainer.innerHTML = '';
+
+    if (!modalCurrentCards || modalCurrentCards.length === 0) {
+        vp.innerHTML = '<div class="carousel-card"><p>Sem conteúdo cadastrado.</p></div>';
+        indicator.innerText = 'Card 0 de 0';
+        return;
+    }
+
+    const cardData = modalCurrentCards[modalCurrentIndex];
+    const div = document.createElement('div');
+    div.className = 'carousel-card';
+
+    let imgsHtml = '';
+    if (cardData.imagens && cardData.imagens.length > 0) {
+        cardData.imagens.forEach(src => {
+            if (src && src.trim() !== '') {
+                const safeSrc = src.trim().replace(/"/g, '&quot;');
+                imgsHtml += '<div class="zoomable-img-wrap" onclick="abrirZoomImagem(\\'' + safeSrc.replace(/'/g, "\\\\'") + '\\')">' +
+                            '<img src="' + safeSrc + '" alt="Ilustração Botânica" onerror="this.parentElement.style.display=\\'none\\'">' +
+                            '<span class="zoom-hint-pill">🔍 Toque para ampliar</span>' +
+                            '</div>';
+            }
+        });
+    }
+
+    let txtHtml = '';
+    if (cardData.textos && cardData.textos.length > 0) {
+        cardData.textos.forEach(txt => {
+            txtHtml += '<div class="card-text">' + parseMarkdown(txt) + '</div>';
+        });
+    }
+
+    div.innerHTML = imgsHtml + txtHtml;
+    vp.appendChild(div);
+
+    // Isola eventos de toque nas tabelas para que passar o dedo pro lado nunca mude de página
+    div.querySelectorAll('.md-table-wrap').forEach(wrap => {
+        ['touchstart', 'touchmove', 'touchend', 'pointerdown', 'pointermove'].forEach(evtName => {
+            wrap.addEventListener(evtName, function(e) {
+                e.stopPropagation();
+            }, { passive: true });
+        });
+    });
+
+    indicator.innerText = 'Card ' + (modalCurrentIndex + 1) + ' de ' + modalCurrentCards.length;
+
+    modalCurrentCards.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (idx === modalCurrentIndex ? ' active' : '');
+        dot.onclick = () => {
+            modalCurrentIndex = idx;
+            renderizarCarrosselModal();
+        };
+        dotsContainer.appendChild(dot);
+    });
+};
+
+// --- 3. LUPA BOTÂNICA INTERATIVA (MOBILE PINCH/DOUBLE-TAP + PC WHEEL/DRAG) ---
+let bioZoomScale = 1;
+let bioZoomX = 0;
+let bioZoomY = 0;
+let bioZoomDragging = false;
+let bioZoomStartX = 0;
+let bioZoomStartY = 0;
+let bioPinchStartDist = 0;
+let bioPinchStartScale = 1;
+let bioLastTapTime = 0;
+
+function aplicarTransformacaoZoom() {
+    const img = document.getElementById('bioZoomImg');
+    const title = document.getElementById('bioZoomTitle');
+    if (img) {
+        img.style.transform = 'translate3d(' + bioZoomX + 'px, ' + bioZoomY + 'px, 0) scale(' + bioZoomScale + ')';
+    }
+    if (title) {
+        title.textContent = '🔍 Lupa Botânica (' + Math.round(bioZoomScale * 100) + '%)';
+    }
+}
+
+function abrirZoomImagem(src) {
+    const overlay = document.getElementById('bioZoomOverlay');
+    const img = document.getElementById('bioZoomImg');
+    if (!overlay || !img) return;
+    img.src = src;
+    bioZoomScale = 1;
+    bioZoomX = 0;
+    bioZoomY = 0;
+    aplicarTransformacaoZoom();
+    overlay.classList.add('open');
+}
+
+function fecharZoomImagem() {
+    const overlay = document.getElementById('bioZoomOverlay');
+    if (overlay) overlay.classList.remove('open');
+}
+
+function resetarZoomImagem() {
+    bioZoomScale = 1;
+    bioZoomX = 0;
+    bioZoomY = 0;
+    aplicarTransformacaoZoom();
+}
+
+function ajustarZoomImagem(delta) {
+    bioZoomScale = Math.min(6, Math.max(1, +(bioZoomScale + delta).toFixed(2)));
+    if (bioZoomScale === 1) { bioZoomX = 0; bioZoomY = 0; }
+    aplicarTransformacaoZoom();
+}
+
+(function inicializarEventosLupaBotanica() {
+    const stage = document.getElementById('bioZoomStage');
+    if (!stage || stage.__zoomBound) return;
+    stage.__zoomBound = true;
+
+    // Roda do mouse (PC)
+    stage.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.3 : -0.3;
+        ajustarZoomImagem(delta);
+    }, { passive: false });
+
+    // Clique e arraste com mouse (PC)
+    stage.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        bioZoomDragging = true;
+        bioZoomStartX = e.clientX - bioZoomX;
+        bioZoomStartY = e.clientY - bioZoomY;
+        stage.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', function(e) {
+        if (!bioZoomDragging) return;
+        bioZoomX = e.clientX - bioZoomStartX;
+        bioZoomY = e.clientY - bioZoomStartY;
+        aplicarTransformacaoZoom();
+    });
+    window.addEventListener('mouseup', function() {
+        bioZoomDragging = false;
+        stage.classList.remove('dragging');
+    });
+
+    // Duplo clique no PC
+    stage.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        if (bioZoomScale > 1) resetarZoomImagem();
+        else { bioZoomScale = 2.5; aplicarTransformacaoZoom(); }
+    });
+
+    // Gestos Touch no Celular (Pinça 2 dedos, Arraste 1 dedo e Duplo Toque)
+    stage.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            bioZoomDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            bioPinchStartDist = Math.hypot(dx, dy);
+            bioPinchStartScale = bioZoomScale;
+        } else if (e.touches.length === 1) {
+            const now = Date.now();
+            if (now - bioLastTapTime < 280) {
+                e.preventDefault();
+                if (bioZoomScale > 1) resetarZoomImagem();
+                else { bioZoomScale = 2.5; aplicarTransformacaoZoom(); }
+                bioLastTapTime = 0;
+                return;
+            }
+            bioLastTapTime = now;
+            bioZoomDragging = true;
+            bioZoomStartX = e.touches[0].clientX - bioZoomX;
+            bioZoomStartY = e.touches[0].clientY - bioZoomY;
+        }
+    }, { passive: false });
+
+    stage.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        if (e.touches.length === 2 && bioPinchStartDist > 0) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.hypot(dx, dy);
+            const ratio = dist / bioPinchStartDist;
+            bioZoomScale = Math.min(6, Math.max(1, +(bioPinchStartScale * ratio).toFixed(2)));
+            aplicarTransformacaoZoom();
+        } else if (e.touches.length === 1 && bioZoomDragging && bioZoomScale > 1) {
+            bioZoomX = e.touches[0].clientX - bioZoomStartX;
+            bioZoomY = e.touches[0].clientY - bioZoomStartY;
+            aplicarTransformacaoZoom();
+        }
+    }, { passive: false });
+
+    stage.addEventListener('touchend', function(e) {
+        if (e.touches.length < 2) bioPinchStartDist = 0;
+        if (e.touches.length === 0) {
+            bioZoomDragging = false;
+            if (bioZoomScale <= 1) { bioZoomX = 0; bioZoomY = 0; aplicarTransformacaoZoom(); }
+        }
+    });
+})();
+
+// --- 4. LINKS DE GPS + INJEÇÃO DINÂMICA DE CAIXAS DE NOTAS NO RELATÓRIO ---
+const __gerarRelatorioBaseV12 = gerarRelatorio;
+
+gerarRelatorio = function(isMd) {
+    let out = __gerarRelatorioBaseV12(isMd);
+    const h2 = isMd ? "## " : "";
+    const hr = isMd ? "\\n---\\n\\n" : "\\n----------------------------------------\\n";
+    const li = isMd ? "- " : "• ";
+    const b  = isMd ? "**" : "";
+
+    // 4.1 Garante que os links de Google Maps, OpenStreetMap e Street View estejam presentes sempre que houver captura de GPS
+    const latRaw = document.getElementById('lat_dd') ? document.getElementById('lat_dd').value.trim().replace(',', '.') : '';
+    const lonRaw = document.getElementById('lon_dd') ? document.getElementById('lon_dd').value.trim().replace(',', '.') : '';
+    if (latRaw && lonRaw && latRaw !== '---' && lonRaw !== '---' && !out.includes('Links de Navegação:')) {
+        const gmaps = 'https://www.google.com/maps/search/?api=1&query=' + latRaw + ',' + lonRaw;
+        const osm = 'https://www.openstreetmap.org/?mlat=' + latRaw + '&mlon=' + lonRaw + '#map=18/' + latRaw + '/' + lonRaw;
+        const street = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + latRaw + ',' + lonRaw;
+        let blocoLinks = '';
+        if (isMd) {
+            blocoLinks = '  * Links de Navegação:\\n' +
+                         '    - [🗺️ Google Maps](' + gmaps + ')\\n' +
+                         '    - [🌍 OpenStreetMap](' + osm + ')\\n' +
+                         '    - [🚶 Street View](' + street + ')\\n';
+        } else {
+            blocoLinks = '  • Links de Navegação:\\n' +
+                         '    - Google Maps: ' + gmaps + '\\n' +
+                         '    - OpenStreetMap: ' + osm + '\\n' +
+                         '    - Street View: ' + street + '\\n';
+        }
+        const alvoGps = li + 'Graus Decimais (DD):';
+        const idxGps = out.indexOf(alvoGps);
+        if (idxGps !== -1) {
+            const fimLinha = out.indexOf('\\n', idxGps);
+            if (fimLinha !== -1) {
+                out = out.slice(0, fimLinha + 1) + blocoLinks + out.slice(fimLinha + 1);
+            }
+        }
+    }
+
+    // 4.2 Coleta todas as Caixas de Notas (.note-box) preenchidas no formulário
+    const formEl = document.getElementById('botanicaForm') || document.querySelector('form') || document.body;
+    const noteBoxes = Array.from(formEl.querySelectorAll('.note-box, [data-note-box="true"]'));
+    if (noteBoxes.length === 0) return out;
+
+    // Mapeia o título visível da seção (<summary>) para o cabeçalho correspondente no relatório padrão
+    function acharAncoraSecaoNoRelatorio(summaryText) {
+        const s = (summaryText || '').toLowerCase();
+        if (s.includes('localiza') || s.includes('anota')) return 'IDENTIFICAÇÃO GERAL';
+        if (s.includes('biometria') || s.includes('gerais')) return 'CARACTERÍSTICAS BIOMÉTRICAS E HÁBITO';
+        if (s.includes('folha') || s.startsWith('1.')) return '1. FOLHA';
+        if (s.includes('tronco') || s.includes('casca') || s.startsWith('2.')) return '2. TRONCO E CASCA';
+        if (s.includes('base') || s.includes('raíz') || s.includes('raiz') || s.startsWith('3.')) return '3. BASE DO TRONCO E RAÍZES AÉREAS';
+        if (s.includes('flor') || s.startsWith('4.')) return '4. FLORES E INFLORESCÊNCIAS';
+        if (s.includes('fruto') || s.includes('semente') || s.startsWith('5.')) return '5. FRUTOS E SEMENTES';
+        return null;
+    }
+
+    function formatarLinhaNota(nb) {
+        const ta = nb.querySelector('textarea');
+        if (!ta || !ta.value || !ta.value.trim()) return null;
+        const val = ta.value.trim();
+        const hideLabel = nb.getAttribute('data-hide-label') === 'true';
+        const rotuloNota = (nb.getAttribute('data-note-label') || nb.querySelector('.note-label')?.textContent.replace(/^📝\\s*/, '') || 'Nota').trim();
+
+        // Verifica se está dentro de um Fieldset (Subseção)
+        const fs = nb.closest('fieldset');
+        let prefixoSubsecao = '';
+        if (fs) {
+            const leg = fs.querySelector(':scope > legend');
+            if (leg) {
+                const clone = leg.cloneNode(true);
+                clone.querySelectorAll('button').forEach(btn => btn.remove());
+                const legTxt = clone.textContent.trim();
+                if (legTxt && legTxt.toLowerCase() !== rotuloNota.toLowerCase()) {
+                    prefixoSubsecao = '[' + legTxt + '] ';
+                }
+            }
+        }
+
+        if (hideLabel) {
+            return '  ' + li + prefixoSubsecao + val + '\\n';
+        }
+        return '  ' + li + b + '📝 ' + prefixoSubsecao + rotuloNota + ':' + b + ' ' + val + '\\n';
+    }
+
+    const notasRaiz = [];
+    const notasPorSecaoNova = new Map();
+
+    noteBoxes.forEach(nb => {
+        const linhaFormatada = formatarLinhaNota(nb);
+        if (!linhaFormatada) return;
+
+        const sec = nb.closest('details.section');
+        if (!sec) {
+            notasRaiz.push(linhaFormatada);
+            return;
+        }
+
+        const summaryTxt = (sec.querySelector(':scope > summary')?.textContent || 'SEÇÃO DE ANOTAÇÕES').trim();
+        const ancora = acharAncoraSecaoNoRelatorio(summaryTxt);
+
+        if (ancora && out.includes(ancora)) {
+            const posAncora = out.indexOf(ancora);
+            const posHr = out.indexOf(hr, posAncora);
+            if (posHr !== -1) {
+                out = out.slice(0, posHr) + '\\n' + linhaFormatada.trimEnd() + '\\n' + out.slice(posHr);
+            } else {
+                out += '\\n' + linhaFormatada;
+            }
+        } else {
+            if (!notasPorSecaoNova.has(summaryTxt)) notasPorSecaoNova.set(summaryTxt, []);
+            notasPorSecaoNova.get(summaryTxt).push(linhaFormatada);
+        }
+    });
+
+    if (notasRaiz.length > 0) {
+        out += hr + h2 + '📝 ANOTAÇÕES GERAIS AVULSAS\\n' + notasRaiz.join('');
+    }
+
+    notasPorSecaoNova.forEach((listaLinhas, tituloSecao) => {
+        out += hr + h2 + tituloSecao.toUpperCase() + '\\n' + listaLinhas.join('');
+    });
+
+    return out;
+};
+
+// Vincula auto-save às novas caixas de notas caso criadas dinamicamente
+document.querySelectorAll('#botanicaForm .note-box textarea').forEach(ta => {
+    if (!ta.__boundSave) {
+        ta.__boundSave = true;
+        ta.addEventListener('input', saveState);
+        ta.addEventListener('change', saveState);
+    }
+});
+${RUNTIME_MARKER_END}
+`;
+}
+
+function extrairBlocoDicionario(texto){
+  const marcador = 'const CONTEUDO_ESTUDOS = {';
+  const inicio = texto.indexOf(marcador);
+  if (inicio === -1) return null;
+  let i = inicio + marcador.length - 1;
+  let profundidade = 0;
+  let fim = -1;
+  for (; i < texto.length; i++){
+    const ch = texto[i];
+    if (ch === '{') profundidade++;
+    else if (ch === '}'){ profundidade--; if (profundidade === 0){ fim = i; break; } }
+    else if (ch === '"' || ch === "'" || ch === '`'){
+      const aspas = ch; i++;
+      while (i < texto.length && texto[i] !== aspas){ if (texto[i] === '\\') i++; i++; }
+    }
+  }
+  if (fim === -1) return null;
+  let fimTotal = fim + 1;
+  if (texto[fimTotal] === ';') fimTotal++;
+  return { inicio, fim: fimTotal, textoOriginal: texto.slice(inicio, fimTotal) };
+}
+
+function removerCamposDoTexto(texto, nomes){
+  let resultado = texto;
+  const removidos = [];
+  nomes.forEach(nome=>{
+    const nomeEsc = escapeRegex(nome);
+    const chamada = `(?:getRad|getChk|v|c)\\('${nomeEsc}'\\)`;
+    let atingiu = false;
+
+    const re1 = new RegExp(`\\$\\{li\\}(?:\\$\\{[a-zA-Z]+\\}|[^\`$])*?\\$\\{${chamada}\\}\\\\n?`, 'g');
+    if (re1.test(resultado)) atingiu = true;
+    resultado = resultado.replace(re1, '');
+
+    const re2 = new RegExp(`\\s?[|·-]\\s?[^\`$|]{0,80}?\\$\\{${chamada}\\}`, 'g');
+    if (re2.test(resultado)) atingiu = true;
+    resultado = resultado.replace(re2, '');
+
+    const re3 = new RegExp(`[^\`$\\n]{0,80}?\\$\\{${chamada}\\}`, 'g');
+    if (re3.test(resultado)) atingiu = true;
+    resultado = resultado.replace(re3, '');
+
+    if (atingiu) removidos.push(nome);
+  });
+  resultado = resultado.replace(/\$\{li\}(?:\$\{[a-zA-Z]+\}\s*)*\\n/g, '');
+  return { resultado, removidos };
+}
+
+function injetarDicionarioNoTexto(texto, obj){
+  const bloco = extrairBlocoDicionario(texto);
+  if (!bloco) return texto;
+  const novoBloco = 'const CONTEUDO_ESTUDOS = ' + JSON.stringify(obj, null, 4) + ';';
+  return texto.slice(0, bloco.inicio) + novoBloco + texto.slice(bloco.fim);
+}
+
+function recomputarScript(){
+  if (!scriptEl || !pristineScriptText) return;
+  let texto = removerBlocoRuntimeUpgrade(pristineScriptText);
+  renamedFieldNames.forEach((novo, antigo)=>{
+    const re = new RegExp(`(getRad|getChk|v|c)\\('${escapeRegex(antigo)}'\\)`, 'g');
+    texto = texto.replace(re, `$1('${novo}')`);
+  });
+  const resultadoRemocao = removerCamposDoTexto(texto, deletedFieldNames);
+  texto = resultadoRemocao.resultado;
+  scrubberLog = resultadoRemocao.removidos;
+  texto = injetarDicionarioNoTexto(texto, conteudoEstudos);
+
+  // Anexa o motor de Upgrade V12.2 ao final do script do App
+  texto = texto.trimEnd() + '\n\n' + gerarCodigoRuntimeUpgradeV12_2() + '\n';
+
+  scriptEl.textContent = texto;
+  if (importedDoc) aplicarUpgradeDOMeCSS(importedDoc);
+  atualizarPainelDevMode();
+}
+
+/* ==========================================================================
+   GESTOR DE DICIONÁRIO + BARRA DE FERRAMENTAS MARKDOWN
+   ========================================================================== */
+function normalizarCardsStudio(entry){
+  if (entry && Array.isArray(entry.cards) && entry.cards.length){
+    return entry.cards.map(c=>({ imagens: Array.isArray(c.imagens) ? c.imagens : [], textos: Array.isArray(c.textos) ? c.textos : [''] }));
+  }
+  return [{ imagens: [], textos: [''] }];
+}
+
+function renderDicionario(){
+  const cont = document.getElementById('dicLista');
+  if (!cont) return;
+  const chaves = Object.keys(conteudoEstudos);
+  cont.innerHTML = chaves.length
+    ? chaves.map(k=>`<div class="dic-item ${k===dicionarioChaveSelecionada?'selected':''}" onclick='selecionarChaveDicionario(${JSON.stringify(k)})'>${escaparHTML(k)}</div>`).join('')
+    : '<p class="tree-empty">Nenhuma entrada no dicionário.</p>';
+  renderEditorDicionario();
+}
+
+function selecionarChaveDicionario(chave){ dicionarioChaveSelecionada = chave; dicCardsBufferChaveAtual = null; renderDicionario(); }
+
+function renderEditorDicionario(){
+  const box = document.getElementById('dicEditor');
+  if (!box) return;
+  if (!dicionarioChaveSelecionada || !conteudoEstudos[dicionarioChaveSelecionada]){
+    box.innerHTML = '<p class="inspector-empty-msg">Selecione uma chave à esquerda, ou crie uma nova.</p>';
+    return;
+  }
+  if (dicCardsBufferChaveAtual !== dicionarioChaveSelecionada){
+    dicCardsBuffer = normalizarCardsStudio(conteudoEstudos[dicionarioChaveSelecionada]);
+    dicCardsBufferChaveAtual = dicionarioChaveSelecionada;
+  }
+  const entrada = conteudoEstudos[dicionarioChaveSelecionada];
+  box.innerHTML = `
+    <label>Título do Guia</label>
+    <input type="text" id="dic_titulo" value="${atributoEscape(entrada.titulo||'')}">
+    <div id="dicCards" style="margin-top:10px;">
+      ${dicCardsBuffer.map((c,i)=>`
+        <div class="dic-card">
+          <div class="dic-card-header">Card ${i+1} <button class="btn-danger-sm" onclick="removerCardDicionario(${i})">✕ remover</button></div>
+          <label>Imagens (nomes de arquivo locais ou URLs, separados por vírgula — contam com Lupa de Zoom no App)</label>
+          <input type="text" class="dic_card_imagens" data-idx="${i}" value="${atributoEscape((c.imagens||[]).join(', '))}">
+          <label>Texto Markdown (suporta tabelas, títulos, citações, listas e destaques)</label>
+          <div class="md-toolbar">
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'bold')" title="Negrito"><b>B</b></button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'italic')" title="Itálico"><i>I</i></button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'mark')" title="Marca-texto">🖍️ Destaque</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'h2')" title="Título de Seção">H2 Título</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'h3')" title="Subtítulo">H3 Sub</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'quote')" title="Caixa de Dica / Citação">💬 Citação</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'ul')" title="Lista com Marcadores">• Lista</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'ol')" title="Lista Numerada">1. Lista</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'hr')" title="Linha Divisória">― Divisor</button>
+            <button type="button" onclick="inserirMarkdownCard(${i}, 'table')" title="Inserir Tabela Comparativa (com rolagem travada)">📊 Inserir Tabela</button>
+          </div>
+          <textarea class="dic_card_texto" id="dic_ta_${i}" data-idx="${i}" rows="6">${escaparHTML((c.textos||[]).join('\n'))}</textarea>
+        </div>`).join('')}
+    </div>
+    <div class="insp-actions">
+      <button class="btn-add" onclick="adicionarCardDicionario()">➕ Adicionar Card</button>
+      <button class="btn-save" onclick="salvarEntradaDicionario()">💾 Salvar Entrada</button>
+      <button class="btn-danger" onclick="excluirEntradaDicionario()">🗑️ Excluir Entrada</button>
+    </div>
+  `;
+}
+
+function inserirMarkdownCard(idx, acao){
+  const ta = document.getElementById('dic_ta_' + idx);
+  if (!ta) return;
+  const start = ta.selectionStart || 0;
+  const end = ta.selectionEnd || 0;
+  const sel = ta.value.slice(start, end);
+  let substituto = '';
+
+  switch(acao){
+    case 'bold': substituto = `**${sel || 'texto em negrito'}**`; break;
+    case 'italic': substituto = `*${sel || 'texto em itálico'}*`; break;
+    case 'mark': substituto = `==${sel || 'texto destacado'}==`; break;
+    case 'h2': substituto = `\n## ${sel || 'Título da Seção'}\n`; break;
+    case 'h3': substituto = `\n### ${sel || 'Subtítulo'}\n`; break;
+    case 'quote': substituto = `\n> 💡 **Dica de Campo:** ${sel || 'escreva a observação aqui...'}\n`; break;
+    case 'ul': substituto = `\n- ${sel || 'Item da lista'}\n`; break;
+    case 'ol': substituto = `\n1. ${sel || 'Primeiro item'}\n2. Segundo item\n`; break;
+    case 'hr': substituto = `\n---\n`; break;
+    case 'table':
+      substituto = `\n| Característica | Táxon A | Táxon B |\n| :--- | :--- | :--- |\n| Folha / Filotaxia | Alterna | Oposta |\n| Exsudato | Látex branco | Resina aromática |\n`;
+      break;
+  }
+
+  ta.value = ta.value.slice(0, start) + substituto + ta.value.slice(end);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = start + substituto.length;
+  sincronizarBufferDoDOM();
+}
+
+function sincronizarBufferDoDOM(){
+  document.querySelectorAll('.dic_card_imagens').forEach(inp=>{
+    const i = +inp.dataset.idx;
+    if (dicCardsBuffer[i]) dicCardsBuffer[i].imagens = inp.value.split(',').map(s=>s.trim()).filter(Boolean);
+  });
+  document.querySelectorAll('.dic_card_texto').forEach(ta=>{
+    const i = +ta.dataset.idx;
+    if (dicCardsBuffer[i]) dicCardsBuffer[i].textos = [ta.value];
+  });
+}
+
+function adicionarCardDicionario(){ sincronizarBufferDoDOM(); dicCardsBuffer.push({imagens:[], textos:['']}); renderEditorDicionario(); }
+function removerCardDicionario(i){ sincronizarBufferDoDOM(); dicCardsBuffer.splice(i,1); renderEditorDicionario(); }
+
+function salvarEntradaDicionario(){
+  sincronizarBufferDoDOM();
+  const titulo = document.getElementById('dic_titulo').value.trim();
+  conteudoEstudos[dicionarioChaveSelecionada] = { titulo, cards: dicCardsBuffer.map(c=>({ imagens: c.imagens, textos: c.textos })) };
+  registrarLog(`Dicionário atualizado: "${dicionarioChaveSelecionada}"`);
+  recomputarScript(); renderDicionario(); marcarDocSujo();
+  alerta('Entrada do dicionário salva!');
+}
+
+function excluirEntradaDicionario(){
+  delete conteudoEstudos[dicionarioChaveSelecionada];
+  dicionarioChaveSelecionada = null; dicCardsBufferChaveAtual = null;
+  registrarLog('Entrada do dicionário excluída.');
+  recomputarScript(); renderDicionario(); marcarDocSujo();
+}
+
+function adicionarChaveDicionario(){
+  const chave = prompt('Chave do dicionário (ex: nome exato do valor da opção, ou uma chave-guia customizada):');
+  if (!chave) return;
+  if (conteudoEstudos[chave]){ alerta('Essa chave já existe.'); return; }
+  conteudoEstudos[chave] = { titulo: chave, cards: [{ imagens: [], textos: [''] }] };
+  dicionarioChaveSelecionada = chave; dicCardsBufferChaveAtual = null;
+  registrarLog(`Nova chave de dicionário criada: "${chave}"`);
+  recomputarScript(); renderDicionario(); marcarDocSujo();
+}
+
+/* ==========================================================================
+   PREVIEW / SERIALIZAÇÃO / EXPORTAÇÃO
+   ========================================================================== */
+function serializarDocumentoAtual(){
+  recomputarScript();
+  return '<!DOCTYPE html>\n' + importedDoc.documentElement.outerHTML;
+}
+
+function atualizarPreview(){
+  if (!importedDoc) return;
+  document.getElementById('previewFrame').srcdoc = serializarDocumentoAtual();
+}
+
+document.getElementById('btnExportar').addEventListener('click', exportarHTML);
+function exportarHTML(){
+  if (!importedDoc) return;
+  const html = serializarDocumentoAtual();
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'BioColeta-Maia-V12.2-Export.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  registrarLog('Arquivo exportado com pacote V12.2 ativo.');
+  alerta('Arquivo exportado com sucesso!');
+}
+
+/* ==========================================================================
+   MODO DESENVOLVEDOR
+   ========================================================================== */
+document.getElementById('btnDicionario').addEventListener('click', ()=>{
+  document.getElementById('painelDicionario').classList.toggle('hidden');
+  document.getElementById('btnDicionario').classList.toggle('active');
+  renderDicionario();
+});
+document.getElementById('btnDevMode').addEventListener('click', ()=>{
+  document.getElementById('painelDevMode').classList.toggle('hidden');
+  document.getElementById('btnDevMode').classList.toggle('active');
+  sincronizarRawFull(); atualizarPainelDevMode();
+});
+
+function atualizarPainelDevMode(){
+  const painel = document.getElementById('devLog');
+  if (!painel) return;
+  let html = '<h4 style="margin-top:0;">📋 Log de Ações</h4>';
+  html += logEntries.length
+    ? `<ul class="dev-log-list">${logEntries.slice().reverse().map(l=>`<li>${escaparHTML(l)}</li>`).join('')}</ul>`
+    : '<p class="tree-empty">Nenhuma ação registrada ainda.</p>';
+  html += '<h4>🧹 Últimas Remoções do Scrubber (gerarRelatorio)</h4>';
+  html += scrubberLog.length
+    ? `<ul class="dev-log-list">${scrubberLog.map(n=>`<li>Campo removido do relatório: <code>${escaparHTML(n)}</code></li>`).join('')}</ul>`
+    : '<p class="tree-empty">Nenhum campo removido ainda.</p>';
+  html += '<h4>🔁 Renomeações Ativas</h4>';
+  html += renamedFieldNames.size
+    ? `<ul class="dev-log-list">${Array.from(renamedFieldNames.entries()).map(([a,b])=>`<li><code>${escaparHTML(a)}</code> → <code>${escaparHTML(b)}</code></li>`).join('')}</ul>`
+    : '<p class="tree-empty">Nenhuma renomeação ativa.</p>';
+  painel.innerHTML = html;
+
+  const rawBox = document.getElementById('devRawScript');
+  if (rawBox && scriptEl) rawBox.value = scriptEl.textContent;
+}
+
+function sincronizarRawFull(){
+  if (!importedDoc) return;
+  document.getElementById('devRawFull').value = serializarDocumentoAtual();
+}
+function recarregarDoEditorBruto(){
+  const texto = document.getElementById('devRawFull').value;
+  importarTexto(texto);
+  document.getElementById('painelIngestao').classList.add('hidden');
+  document.getElementById('studioMain').classList.remove('hidden');
+  alerta('Documento recarregado a partir do Editor Bruto.');
+}
+
+/* ==========================================================================
+   REDE DE SEGURANÇA: autosalvamento periódico + aviso antes de saída
+   ========================================================================== */
+setInterval(autosalvar, AUTOSAVE_INTERVAL_MS);
+document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'hidden') autosalvar(); });
+window.addEventListener('pagehide', autosalvar);
+window.addEventListener('beforeunload', function(e){
+  if (importedDoc){
+    autosalvar();
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+verificarAutosaveNaAbertura();
+</script>
+</body>
+</html>
