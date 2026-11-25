@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>BioColeta Studio V7.2</title>
+<title>BioColeta Studio V7.3</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312160d' stroke='%237fae4f' stroke-width='4'/%3E%3Cpath d='M46 16c-14 0-26 10-28 26 6-4 14-6 22-4-8 4-14 10-18 16 14-2 26-12 24-38z' fill='%237fae4f'/%3E%3Ccircle cx='46' cy='46' r='11' fill='%23212917' stroke='%23a3d16a' stroke-width='3'/%3E%3Cpath d='M46 39v14M39 46h14' stroke='%23a3d16a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root{
@@ -163,6 +163,18 @@
   .dic-item.selected{background:var(--accent-soft);color:var(--accent-strong);font-weight:700;}
   .dic-card{border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;background:var(--bg-panel-2);}
   .dic-card-header{display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;color:var(--text);font-weight:700;margin-bottom:6px;}
+  .dic-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 12px;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--bg-panel-2);font-size:0.82rem;}
+  .dic-toolbar select{font-size:0.82rem;padding:4px 6px;}
+  #dicPeso{flex-basis:100%;font-size:0.8rem;color:var(--text-muted);}
+  #dicPeso details{margin-top:4px;} #dicPeso li{font-size:0.75rem;word-break:break-all;}
+  .dic-galeria{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;}
+  .dic-thumb{width:118px;border:1px solid var(--border);border-radius:6px;padding:5px;background:var(--bg-panel);font-size:0.7rem;color:var(--text-muted);}
+  .dic-thumb img{width:100%;height:80px;object-fit:cover;border-radius:4px;display:block;}
+  .dic-thumb .pend{height:80px;display:flex;align-items:center;justify-content:center;text-align:center;word-break:break-all;overflow:hidden;color:#ffb74d;}
+  .dic-thumb-actions{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;}
+  .dic-thumb-actions button{font-size:0.72rem;padding:3px 6px;}
+  .dic-add-linha{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;}
+  .dic-add-linha input[type=text]{flex:1;min-width:140px;}
 
   /* Barra de Ferramentas Markdown no Editor do Dicionário */
   .md-toolbar{
@@ -257,6 +269,17 @@
   <section id="painelDicionario" class="dev-panel hidden">
     <h3>📖 Gestor de Dicionário JS (Guias de Estudo / CONTEUDO_ESTUDOS)</h3>
     <p>Edite os conteúdos dos guias (📖 Guia e ℹ️). Use a barra de ferramentas em cada card para inserir tabelas, títulos, citações, listas e destaques.</p>
+    <div class="dic-toolbar">
+      <label>Qualidade das imagens:
+        <select id="dicQualidade" onchange="dicQualidadeImg=parseInt(this.value,10)">
+          <option value="1000">Leve (1000 px)</option>
+          <option value="1400" selected>Padrão (1400 px)</option>
+          <option value="1800">Alta (1800 px)</option>
+        </select>
+      </label>
+      <button class="btn-add" onclick="vincularImagensEmLote()">📂 Vincular imagens em lote (pelo nome do arquivo)</button>
+      <div id="dicPeso"></div>
+    </div>
     <div class="dic-layout">
       <div class="dic-list-col">
         <button class="btn-add" style="width:100%;margin-bottom:10px;" onclick="adicionarChaveDicionario()">➕ Nova Chave</button>
@@ -310,6 +333,7 @@ const deletedFieldNames = new Set();
 const renamedFieldNames = new Map();
 let scrubberLog = [];
 let conteudoEstudos = {};
+let dicionarioNaoInterpretado = false;
 let dicionarioChaveSelecionada = null;
 let dicCardsBuffer = [];
 let dicCardsBufferChaveAtual = null;
@@ -368,7 +392,11 @@ const ESTILOS_UPGRADE_V12_2 = `
 }
 
 /* Imagens Clicáveis no Guia com Indicador de Lupa */
+/* Correção: dentro do card (coluna flex com altura limitada) as molduras de imagem encolhiam até virar só uma linha */
+.carousel-card > * { flex-shrink: 0; }
 .zoomable-img-wrap {
+    flex-shrink: 0;
+    min-height: 60px;
     position: relative;
     margin-bottom: 12px;
     border-radius: 8px;
@@ -380,6 +408,7 @@ const ESTILOS_UPGRADE_V12_2 = `
 .zoomable-img-wrap img {
     display: block;
     width: 100%;
+    height: auto;
     max-height: 68vh;
     object-fit: contain;
     margin-bottom: 0 !important;
@@ -621,12 +650,20 @@ document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') fecharModal(); 
 /* ==========================================================================
    FUNÇÕES DE AUTOSALVAMENTO / RESTAURAÇÃO
    ========================================================================== */
+let autosaveAvisado = false;
 function autosalvar(){
   if (!importedDoc) return;
   try{
     const dados = { html: serializarDocumentoAtual(), timestamp: Date.now() };
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(dados));
-  } catch(e){ console.warn('Falha ao autosalvar:', e); }
+    autosaveAvisado = false;
+  } catch(e){
+    console.warn('Falha ao autosalvar:', e);
+    if (!autosaveAvisado){
+      autosaveAvisado = true;
+      alerta('⚠️ Autosave indisponível: o arquivo (com imagens) passou do limite do navegador. Use ⬇️ Exportar HTML para guardar seu trabalho.');
+    }
+  }
 }
 function limparAutosave(){
   try{ localStorage.removeItem(AUTOSAVE_KEY); } catch(e){}
@@ -720,6 +757,7 @@ function importarTexto(texto){
 
   const bloco = extrairBlocoDicionario(pristineScriptText);
   conteudoEstudos = {};
+  dicionarioNaoInterpretado = false;
   if (bloco){
     try{
       const corpo = bloco.textoOriginal.replace(/^const\s+CONTEUDO_ESTUDOS\s*=\s*/, '').replace(/;\s*$/, '');
@@ -727,6 +765,8 @@ function importarTexto(texto){
     } catch(err){
       registrarLog('Aviso: não foi possível interpretar CONTEUDO_ESTUDOS automaticamente. O Gestor de Dicionário iniciará vazio.');
       conteudoEstudos = {};
+      dicionarioNaoInterpretado = true;
+      alerta('⚠️ Não consegui ler os guias deste arquivo. Eles foram PRESERVADOS como estão (não serão apagados na exportação).');
     }
   }
 
@@ -1827,6 +1867,162 @@ function parseMarkdown(texto) {
     return result.join('');
 }
 
+// --- 1b. BIBLIOTECA LOCAL DE IMAGENS (resolve fotos referenciadas só pelo nome do arquivo) ---
+// Navegadores (principalmente no celular) não deixam um HTML aberto do armazenamento interno ler
+// arquivos "vizinhos". Aqui as fotos são anexadas UMA vez pelo seletor de arquivos e guardadas
+// no próprio navegador (IndexedDB), e depois são encontradas pelo nome do arquivo.
+var BIO_IMG_DB = 'biocoleta_imagens_locais';
+var BIO_IMG_STORE = 'imgs';
+var bioImgMem = {};
+var bioImgUrlCache = {};
+
+function bioImgChave(nome) {
+    var n = String(nome || '').trim();
+    try { n = decodeURIComponent(n); } catch (e) {}
+    n = n.split('?')[0];
+    var p1 = n.split('/');
+    n = p1[p1.length - 1];
+    var p2 = n.split(String.fromCharCode(92));
+    n = p2[p2.length - 1];
+    return n.toLowerCase();
+}
+
+function bioImgAbrirDB() {
+    return new Promise(function(resolve) {
+        try {
+            var req = indexedDB.open(BIO_IMG_DB, 1);
+            req.onupgradeneeded = function() { req.result.createObjectStore(BIO_IMG_STORE); };
+            req.onsuccess = function() { resolve(req.result); };
+            req.onerror = function() { resolve(null); };
+        } catch (e) { resolve(null); }
+    });
+}
+
+function bioImgBuscar(chave) {
+    if (bioImgMem[chave]) return Promise.resolve(bioImgMem[chave]);
+    return bioImgAbrirDB().then(function(db) {
+        if (!db) return null;
+        return new Promise(function(resolve) {
+            try {
+                var rq = db.transaction(BIO_IMG_STORE, 'readonly').objectStore(BIO_IMG_STORE).get(chave);
+                rq.onsuccess = function() { resolve(rq.result || null); };
+                rq.onerror = function() { resolve(null); };
+            } catch (e) { resolve(null); }
+        });
+    });
+}
+
+function bioImgSalvar(chave, blob) {
+    bioImgMem[chave] = blob;
+    delete bioImgUrlCache[chave];
+    return bioImgAbrirDB().then(function(db) {
+        if (!db) return false;
+        return new Promise(function(resolve) {
+            try {
+                var tx = db.transaction(BIO_IMG_STORE, 'readwrite');
+                tx.objectStore(BIO_IMG_STORE).put(blob, chave);
+                tx.oncomplete = function() { resolve(true); };
+                tx.onerror = function() { resolve(false); };
+            } catch (e) { resolve(false); }
+        });
+    });
+}
+
+function bioImgUrlDoBlob(chave, blob) {
+    if (!bioImgUrlCache[chave]) bioImgUrlCache[chave] = URL.createObjectURL(blob);
+    return bioImgUrlCache[chave];
+}
+
+function bioImgEscolher(pasta) {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.multiple = true;
+    if (pasta) { inp.setAttribute('webkitdirectory', ''); }
+    inp.style.display = 'none';
+    inp.addEventListener('change', function() {
+        var arquivos = Array.prototype.slice.call(inp.files || []);
+        inp.remove();
+        if (!arquivos.length) return;
+        var ops = [];
+        arquivos.forEach(function(f) {
+            if (f.type && f.type.indexOf('image/') !== 0) return;
+            ops.push(bioImgSalvar(bioImgChave(f.name), f));
+        });
+        Promise.all(ops).then(function() {
+            if (typeof showToast === 'function') showToast('📷 ' + ops.length + ' imagem(ns) anexada(s) e guardada(s) neste navegador');
+            renderizarCarrosselModal();
+        });
+    });
+    document.body.appendChild(inp);
+    inp.click();
+}
+
+function bioMontarPlaceholderImagem(wrap, nomeArquivo) {
+    wrap.setAttribute('data-broken', '1');
+    wrap.innerHTML = '';
+    var box = document.createElement('div');
+    box.style.cssText = 'padding:12px;border:1px dashed #c62828;border-radius:8px;font-size:0.85rem;color:#c62828;line-height:1.45;cursor:default;';
+    var t = document.createElement('div');
+    t.textContent = '⚠️ Imagem não carregada: ' + nomeArquivo;
+    box.appendChild(t);
+    var d = document.createElement('div');
+    d.style.cssText = 'color:#555;margin:6px 0 8px 0;';
+    d.textContent = 'Anexe as fotos do guia (podem ser várias de uma vez). Elas ficam guardadas neste navegador e aparecem automaticamente, pelo nome do arquivo.';
+    box.appendChild(d);
+    var b1 = document.createElement('button');
+    b1.type = 'button';
+    b1.textContent = '📂 Anexar imagens';
+    b1.style.cssText = 'padding:8px 12px;margin:0 6px 6px 0;border:0;border-radius:8px;background:#1b5e20;color:#fff;font-weight:700;font-size:0.85rem;';
+    b1.addEventListener('click', function(e) { e.stopPropagation(); bioImgEscolher(false); });
+    box.appendChild(b1);
+    var b2 = document.createElement('button');
+    b2.type = 'button';
+    b2.textContent = '📁 Anexar pasta inteira';
+    b2.style.cssText = 'padding:8px 12px;margin:0 6px 6px 0;border:1px solid #1b5e20;border-radius:8px;background:#fff;color:#1b5e20;font-weight:700;font-size:0.85rem;';
+    b2.addEventListener('click', function(e) { e.stopPropagation(); bioImgEscolher(true); });
+    box.appendChild(b2);
+    wrap.appendChild(box);
+}
+
+function bioMontarImagem(wrap, srcReal) {
+    var imgEl = wrap.querySelector('img');
+    var srcZoom = srcReal;
+    var ehInline = /^(data:|blob:|https?:)/i.test(srcReal);
+
+    function falhou() { bioMontarPlaceholderImagem(wrap, bioImgChave(srcReal) || srcReal); }
+
+    wrap.addEventListener('click', function() {
+        if (wrap.getAttribute('data-broken') === '1') return;
+        abrirZoomImagem(srcZoom);
+    });
+
+    if (ehInline) {
+        imgEl.addEventListener('error', falhou);
+        imgEl.src = srcReal;
+        return;
+    }
+
+    var chave = bioImgChave(srcReal);
+    bioImgBuscar(chave).then(function(blob) {
+        if (blob) {
+            srcZoom = bioImgUrlDoBlob(chave, blob);
+            imgEl.addEventListener('error', falhou);
+            imgEl.src = srcZoom;
+            return;
+        }
+        var tentativas = [srcReal];
+        var cod = encodeURI(srcReal);
+        if (cod !== srcReal) tentativas.push(cod);
+        var k = 0;
+        imgEl.addEventListener('error', function() {
+            k++;
+            if (k < tentativas.length) { imgEl.src = tentativas[k]; } else { falhou(); }
+        });
+        imgEl.src = tentativas[0];
+    });
+}
+
 // --- 2. RENDERIZAÇÃO DO CARROSSEL COM SUPORTE A LUPA E TRAVA DE TABELA ---
 renderizarCarrosselModal = function() {
     const vp = document.getElementById('carouselViewport');
@@ -1848,12 +2044,14 @@ renderizarCarrosselModal = function() {
     div.className = 'carousel-card';
 
     let imgsHtml = '';
+    const srcsCard = [];
     if (cardData.imagens && cardData.imagens.length > 0) {
         cardData.imagens.forEach(src => {
             if (src && src.trim() !== '') {
-                const safeSrc = src.trim().replace(/"/g, '&quot;');
-                imgsHtml += '<div class="zoomable-img-wrap" onclick="abrirZoomImagem(\\'' + safeSrc.replace(/'/g, "\\\\'") + '\\')">' +
-                            '<img src="' + safeSrc + '" alt="Ilustração Botânica" onerror="this.parentElement.style.display=\\'none\\'">' +
+                const idxImg = srcsCard.length;
+                srcsCard.push(src.trim());
+                imgsHtml += '<div class="zoomable-img-wrap" data-zoom-idx="' + idxImg + '">' +
+                            '<img alt="Ilustração Botânica">' +
                             '<span class="zoom-hint-pill">🔍 Toque para ampliar</span>' +
                             '</div>';
             }
@@ -1868,6 +2066,10 @@ renderizarCarrosselModal = function() {
     }
 
     div.innerHTML = imgsHtml + txtHtml;
+    div.querySelectorAll('.zoomable-img-wrap').forEach(wrap => {
+        const idxImg = parseInt(wrap.getAttribute('data-zoom-idx'), 10);
+        bioMontarImagem(wrap, srcsCard[idxImg]);
+    });
     vp.appendChild(div);
 
     // Isola eventos de toque nas tabelas para que passar o dedo pro lado nunca mude de página
@@ -2078,6 +2280,8 @@ gerarRelatorio = function(isMd) {
     // Mapeia o título visível da seção (<summary>) para o cabeçalho correspondente no relatório padrão
     function acharAncoraSecaoNoRelatorio(summaryText) {
         const s = (summaryText || '').toLowerCase();
+        const tituloMaiusculo = (summaryText || '').trim().toUpperCase();
+        if (tituloMaiusculo && out.includes(tituloMaiusculo)) return tituloMaiusculo;
         if (s.includes('localiza') || s.includes('anota')) return 'IDENTIFICAÇÃO GERAL';
         if (s.includes('biometria') || s.includes('gerais')) return 'CARACTERÍSTICAS BIOMÉTRICAS E HÁBITO';
         if (s.includes('folha') || s.startsWith('1.')) return '1. FOLHA';
@@ -2220,6 +2424,7 @@ function removerCamposDoTexto(texto, nomes){
 function injetarDicionarioNoTexto(texto, obj){
   const bloco = extrairBlocoDicionario(texto);
   if (!bloco) return texto;
+  if (dicionarioNaoInterpretado && Object.keys(obj).length === 0) return texto; // proteção: nunca apagar guias que não foram lidos
   const novoBloco = 'const CONTEUDO_ESTUDOS = ' + JSON.stringify(obj, null, 4) + ';';
   return texto.slice(0, bloco.inicio) + novoBloco + texto.slice(bloco.fim);
 }
@@ -2262,6 +2467,7 @@ function renderDicionario(){
     ? chaves.map(k=>`<div class="dic-item ${k===dicionarioChaveSelecionada?'selected':''}" onclick='selecionarChaveDicionario(${JSON.stringify(k)})'>${escaparHTML(k)}</div>`).join('')
     : '<p class="tree-empty">Nenhuma entrada no dicionário.</p>';
   renderEditorDicionario();
+  atualizarResumoImagens();
 }
 
 function selecionarChaveDicionario(chave){ dicionarioChaveSelecionada = chave; dicCardsBufferChaveAtual = null; renderDicionario(); }
@@ -2285,8 +2491,8 @@ function renderEditorDicionario(){
       ${dicCardsBuffer.map((c,i)=>`
         <div class="dic-card">
           <div class="dic-card-header">Card ${i+1} <button class="btn-danger-sm" onclick="removerCardDicionario(${i})">✕ remover</button></div>
-          <label>Imagens (nomes de arquivo locais ou URLs, separados por vírgula — contam com Lupa de Zoom no App)</label>
-          <input type="text" class="dic_card_imagens" data-idx="${i}" value="${atributoEscape((c.imagens||[]).join(', '))}">
+          <label>Imagens do card (embutidas no arquivo: funcionam offline, com Lupa de Zoom)</label>
+          ${htmlGaleriaCard(c, i)}
           <label>Texto Markdown (suporta tabelas, títulos, citações, listas e destaques)</label>
           <div class="md-toolbar">
             <button type="button" onclick="inserirMarkdownCard(${i}, 'bold')" title="Negrito"><b>B</b></button>
@@ -2351,16 +2557,193 @@ function sincronizarBufferDoDOM(){
   });
 }
 
+/* ==========================================================================
+   IMAGENS EMBUTIDAS (base64) NOS CARDS DO DICIONÁRIO
+   ========================================================================== */
+let dicQualidadeImg = 1400;
+function ehDataUri(s){ return /^data:/i.test(s||''); }
+function ehUrlHttp(s){ return /^https?:\/\//i.test(s||''); }
+function kbStr(bytes){ return bytes > 1048576 ? (bytes/1048576).toFixed(2)+' MB' : Math.round(bytes/1024)+' KB'; }
+function bytesDataUri(s){ const i = s.indexOf(','); return Math.round((s.length - i - 1) * 0.75); }
+
+function selecionarArquivosImagem(multiplo, callback){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = !!multiplo;
+  inp.style.display = 'none';
+  inp.addEventListener('change', ()=>{
+    const arquivos = Array.from(inp.files || []);
+    inp.remove();
+    if (arquivos.length) callback(arquivos);
+  });
+  document.body.appendChild(inp);
+  inp.click();
+}
+
+function arquivoParaDataUri(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const esc = Math.min(1, dicQualidadeImg / Math.max(w, h));
+        w = Math.max(1, Math.round(w*esc)); h = Math.max(1, Math.round(h*esc));
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const saida = cv.toDataURL('image/jpeg', 0.82);
+        URL.revokeObjectURL(url); resolve(saida);
+      } catch(e){ URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('Formato não suportado: ' + file.name)); };
+    img.src = url;
+  });
+}
+
+function htmlGaleriaCard(c, i){
+  const imgs = c.imagens || [];
+  const itens = imgs.map((src, j)=>{
+    const pend = !ehDataUri(src);
+    const corpo = ehDataUri(src)
+      ? `<img src="${atributoEscape(src)}" alt="">`
+      : `<div class="pend">${ehUrlHttp(src) ? '🌐 ' : '⏳ '}${escaparHTML(src)}</div>`;
+    const info = ehDataUri(src) ? kbStr(bytesDataUri(src)) : (ehUrlHttp(src) ? 'URL (exige internet)' : 'arquivo pendente');
+    return `<div class="dic-thumb">${corpo}<div>${info}</div>
+      <div class="dic-thumb-actions">
+        <button type="button" onclick="moverImagemCard(${i},${j},-1)" title="Mover para trás">‹</button>
+        <button type="button" onclick="moverImagemCard(${i},${j},1)" title="Mover para frente">›</button>
+        ${pend ? `<button type="button" onclick="anexarArquivoItem(${i},${j})">📎</button>` : ''}
+        <button type="button" class="btn-danger-sm" onclick="removerImagemCard(${i},${j})">✕</button>
+      </div></div>`;
+  }).join('');
+  return `<div class="dic-galeria">${itens || '<span style="font-size:0.78rem;color:var(--text-muted);">Nenhuma imagem neste card.</span>'}</div>
+    <div class="dic-add-linha">
+      <button type="button" class="btn-add" onclick="escolherImagensCard(${i})">📷 Adicionar imagem(ns)</button>
+      <input type="text" id="dic_add_nome_${i}" placeholder="ou nome de arquivo / URL">
+      <button type="button" onclick="adicionarNomeUrlCard(${i})">＋</button>
+    </div>`;
+}
+
+function escolherImagensCard(i){
+  selecionarArquivosImagem(true, files => adicionarImagensCard(i, files));
+}
+async function adicionarImagensCard(i, files){
+  sincronizarBufferDoDOM();
+  let ok = 0; const falhas = [];
+  alerta('⏳ Processando ' + files.length + ' imagem(ns)...');
+  for (const f of files){
+    try{ dicCardsBuffer[i].imagens.push(await arquivoParaDataUri(f)); ok++; }
+    catch(e){ falhas.push(f.name); }
+  }
+  registrarLog(`Imagens embutidas no card ${i+1} de "${dicionarioChaveSelecionada}": ${ok} ok` + (falhas.length ? `, falharam: ${falhas.join(', ')}` : ''));
+  salvarEntradaDicionario(true);
+  alerta(falhas.length ? `⚠️ ${ok} ok; falharam: ${falhas.join(', ')}` : `📷 ${ok} imagem(ns) embutida(s)`);
+}
+function anexarArquivoItem(i, j){
+  selecionarArquivosImagem(false, async files => {
+    sincronizarBufferDoDOM();
+    try{
+      dicCardsBuffer[i].imagens[j] = await arquivoParaDataUri(files[0]);
+      salvarEntradaDicionario(true);
+      alerta('📎 Arquivo anexado.');
+    } catch(e){ alerta('⚠️ Não foi possível ler essa imagem.'); }
+  });
+}
+function adicionarNomeUrlCard(i){
+  const inp = document.getElementById('dic_add_nome_' + i);
+  const v = inp ? inp.value.trim() : '';
+  if (!v) return;
+  sincronizarBufferDoDOM();
+  dicCardsBuffer[i].imagens.push(v);
+  salvarEntradaDicionario(true);
+}
+function removerImagemCard(i, j){
+  sincronizarBufferDoDOM();
+  dicCardsBuffer[i].imagens.splice(j, 1);
+  salvarEntradaDicionario(true);
+}
+function moverImagemCard(i, j, dir){
+  sincronizarBufferDoDOM();
+  const a = dicCardsBuffer[i].imagens, k = j + dir;
+  if (k < 0 || k >= a.length) return;
+  [a[j], a[k]] = [a[k], a[j]];
+  salvarEntradaDicionario(true);
+}
+
+function listarImagensPendentes(){
+  const lista = [];
+  Object.keys(conteudoEstudos).forEach(k=>{
+    (conteudoEstudos[k].cards || []).forEach((card, n)=>{
+      (card.imagens || []).forEach(s=>{
+        if (typeof s === 'string' && s.trim() && !ehDataUri(s) && !ehUrlHttp(s)) lista.push({ chave:k, card:n+1, nome:s });
+      });
+    });
+  });
+  return lista;
+}
+
+function atualizarResumoImagens(){
+  const box = document.getElementById('dicPeso');
+  if (!box) return;
+  let embutidas = 0, bytes = 0, urls = 0;
+  Object.keys(conteudoEstudos).forEach(k=>{
+    (conteudoEstudos[k].cards || []).forEach(card=>{
+      (card.imagens || []).forEach(s=>{
+        if (ehDataUri(s)){ embutidas++; bytes += bytesDataUri(s); }
+        else if (ehUrlHttp(s)) urls++;
+      });
+    });
+  });
+  const pend = listarImagensPendentes();
+  let h = `🖼️ <strong>${embutidas}</strong> embutida(s) · ${kbStr(bytes)} no HTML · ⏳ <strong>${pend.length}</strong> pendente(s)` + (urls ? ` · 🌐 ${urls} por URL` : '');
+  if (bytes > 8*1048576) h += '<br>⚠️ Arquivo pesado para o celular: use a qualidade "Leve".';
+  if (pend.length){
+    h += '<details><summary>Ver pendentes (nome de arquivo sem imagem embutida)</summary><ul>' +
+      pend.map(p=>`<li>${escaparHTML(p.chave)} · card ${p.card}: <code>${escaparHTML(p.nome)}</code></li>`).join('') + '</ul></details>';
+  }
+  box.innerHTML = h;
+}
+
+function vincularImagensEmLote(){
+  selecionarArquivosImagem(true, async files => {
+    if (dicionarioChaveSelecionada && conteudoEstudos[dicionarioChaveSelecionada] && document.getElementById('dic_titulo')) salvarEntradaDicionario(true);
+    alerta('⏳ Processando ' + files.length + ' arquivo(s)...');
+    const norm = s => String(s).trim().toLowerCase();
+    const mapa = new Map(); const falhas = [];
+    for (const f of files){
+      try{ mapa.set(norm(f.name), await arquivoParaDataUri(f)); } catch(e){ falhas.push(f.name); }
+    }
+    let vinculadas = 0; const usados = new Set();
+    Object.keys(conteudoEstudos).forEach(k=>{
+      (conteudoEstudos[k].cards || []).forEach(card=>{
+        card.imagens = (card.imagens || []).map(s=>{
+          if (typeof s === 'string' && !ehDataUri(s) && !ehUrlHttp(s)){
+            const nome = norm(s.split('/').pop());
+            if (mapa.has(nome)){ vinculadas++; usados.add(nome); return mapa.get(nome); }
+          }
+          return s;
+        });
+      });
+    });
+    const semPar = Array.from(mapa.keys()).filter(n=>!usados.has(n));
+    dicCardsBufferChaveAtual = null;
+    registrarLog(`Vínculo em lote: ${vinculadas} referência(s) preenchida(s).` + (semPar.length ? ` Arquivos sem referência: ${semPar.join(', ')}.` : '') + (falhas.length ? ` Falharam: ${falhas.join(', ')}.` : ''));
+    recomputarScript(); renderDicionario(); marcarDocSujo();
+    alerta(`📂 ${vinculadas} vinculada(s), ${listarImagensPendentes().length} pendente(s)` + (semPar.length ? `, ${semPar.length} arquivo(s) sem nome correspondente` : ''));
+  });
+}
+
 function adicionarCardDicionario(){ sincronizarBufferDoDOM(); dicCardsBuffer.push({imagens:[], textos:['']}); renderEditorDicionario(); }
 function removerCardDicionario(i){ sincronizarBufferDoDOM(); dicCardsBuffer.splice(i,1); renderEditorDicionario(); }
 
-function salvarEntradaDicionario(){
+function salvarEntradaDicionario(silencioso){
   sincronizarBufferDoDOM();
   const titulo = document.getElementById('dic_titulo').value.trim();
   conteudoEstudos[dicionarioChaveSelecionada] = { titulo, cards: dicCardsBuffer.map(c=>({ imagens: c.imagens, textos: c.textos })) };
   registrarLog(`Dicionário atualizado: "${dicionarioChaveSelecionada}"`);
   recomputarScript(); renderDicionario(); marcarDocSujo();
-  alerta('Entrada do dicionário salva!');
+  if (!silencioso) alerta('Entrada do dicionário salva!');
 }
 
 function excluirEntradaDicionario(){
