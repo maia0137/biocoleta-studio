@@ -33,7 +33,7 @@ O **BioColeta Studio** é um ecossistema *single-file* (executável 100% offline
 
 ### 1. Acesso Online Imediato (GitHub Pages)
 Você pode executar o estúdio a partir de qualquer computador ou celular acessando o link do projeto via GitHub Pages:
-> **`https://[SEU-USUARIO].github.io/[NOME-DO-REPOSITORIO]/`**
+> **`(https://maia0137.github.io/biocoleta-studio/)`**
 
 ### 2. Uso Local / Offline
 1. Clone ou baixe este repositório:
